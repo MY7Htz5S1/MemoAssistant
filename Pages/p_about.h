@@ -6,7 +6,7 @@ class P_About : public ElaScrollPage
 {
     Q_OBJECT
 public:
-    P_About(QWidget* parent = nullptr);
+    Q_INVOKABLE P_About(QWidget* parent = nullptr);
 };
 
 #endif // P_ABOUT_H
