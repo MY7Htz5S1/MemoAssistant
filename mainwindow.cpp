@@ -54,7 +54,7 @@ void MainWindow::initDB(QString dbName){
 
 void MainWindow::initContent(){
     pHome = new P_Home(this);
-    pManage = new P_Manage(this);
+    pManage = new P_Manage(tasks,this);
     pTimeline = new P_Timeline(this);
     pReport = new P_Report(this);
     pSetting = new P_Setting(this);
@@ -66,7 +66,7 @@ void MainWindow::initContent(){
 
     this->addPageNode("主页", pHome, ElaIconType::House);
     this->addPageNode("事项管理", pManage, ElaIconType::Book);
-    this->addPageNode("时间试图",pTimeline, ElaIconType::Timeline);
+    this->addPageNode("时间线视图",pTimeline, ElaIconType::Timeline);
     this->addPageNode("近期总结",pReport, ElaIconType::Newspaper);
 
     this->addFooterNode("关于",pAbout,aboutKey,0,ElaIconType::User);
