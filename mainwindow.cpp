@@ -119,41 +119,130 @@ bool MainWindow::Login(){
         ElaMessageBar::error(ElaMessageBarType::BottomRight,"账户信息数据库初始化失败！",err.text(),3000);
         return false;
     }
+
     LoginDialog* ld = new LoginDialog(this);
     connect(ld, &LoginDialog::userInfo,this,[=](const QString& name, const QString& pwd){
-        bool flag = false;
+        if(name.isEmpty() || pwd.isEmpty()){
+            ld->getFeedback(false);
+            ElaMessageBar::error(ElaMessageBarType::BottomRight,"登录失败!","用户名和密码不能为空!",3000);
+            return;
+        }
+
         if(!accountDB.open()){
-            ElaMessageBar::error(ElaMessageBarType::BottomRight,"账户信息数据库加载失败！",err.text(),3000);
+            ElaMessageBar::error(ElaMessageBarType::BottomRight,"账户信息数据库加载失败！",accountDB.lastError().text(),3000);
             ld->getFeedback(false);
             return;
         }
+
         QSqlQuery query(accountDB);
-        query.exec("SELECT UserPsw FROM users WHERE UserName='"+name+"';");
-        while(query.next()){
-            if(query.value(0).toString() == pwd){
-                flag = true;
+
+        // 检查用户是否存在
+        query.prepare("SELECT UserID, UserPsw, UserEmail, UserDBName FROM users WHERE UserName = ?");
+        query.addBindValue(name);
+
+        if(!query.exec()){
+            accountDB.close();
+            ld->getFeedback(false);
+            ElaMessageBar::error(ElaMessageBarType::BottomRight,"查询失败!",query.lastError().text(),3000);
+            return;
+        }
+
+        bool userExists = query.next();
+        bool loginSuccess = false;
+
+        if(userExists){
+            // 用户存在，验证密码
+            QString storedPassword = query.value(1).toString();
+            if(storedPassword == pwd){
+                loginSuccess = true;
                 this->hasLoggedIn = true;
+
+                // 获取用户信息
+                this->usr = new User;
+                this->usr->id = query.value(0).toInt();
+                this->usr->name = name;
+                this->usr->email = query.value(2).toString();
+                this->usr->dbName = query.value(3).toString();
+
+                ElaMessageBar::success(ElaMessageBarType::TopRight,"登录成功！","欢迎回来！",3000);
+            } else {
+                ElaMessageBar::error(ElaMessageBarType::BottomRight,"登录失败!","密码错误!",3000);
+            }
+        } else {
+            // 用户不存在，创建新用户
+            loginSuccess = createNewUser(name, pwd, query);
+            if(loginSuccess){
+                this->hasLoggedIn = true;
+                ElaMessageBar::success(ElaMessageBarType::TopRight,"注册成功！","新用户创建完成，欢迎使用！",3000);
             }
         }
-        if(!flag){
-            ld->getFeedback(false);
-            ElaMessageBar::error(ElaMessageBarType::BottomRight,"登录失败!","用户名或密码错误!",3000);
-            return;
+
+        accountDB.close();
+        ld->getFeedback(loginSuccess);
+
+        if(loginSuccess){
+            this->initDB(usr->dbName);
         }
-        query.exec("SELECT UserID,UserEmail,UserDBName FROM users WHERE UserName='"+name+"';");
-        while(query.next()){
-            this->usr = new User;
-            this->usr->id = query.value(0).toInt();
-            this->usr->name = name;
-            this->usr->email=query.value(1).toString();
-            this->usr->dbName = query.value(2).toString();
-        }
-        ld->getFeedback(true);
-        this->initDB(usr->dbName);
-        ElaMessageBar::success(ElaMessageBarType::TopRight,"登录成功！","你现在可以使用了",3000);
     });
+
     ld->show();
     return hasLoggedIn;
+}
+
+bool MainWindow::createNewUser(const QString& name, const QString& pwd, QSqlQuery& query){
+    // 生成用户数据库名称（使用用户名）
+    QString userDBName = name;
+
+    // 插入新用户到accounts.db
+    query.prepare("INSERT INTO users (UserName, UserEmail, UserPsw, UserDBName) VALUES (?, ?, ?, ?)");
+    query.addBindValue(name);
+    query.addBindValue(""); // 默认空邮箱
+    query.addBindValue(pwd);
+    query.addBindValue(userDBName);
+
+    if(!query.exec()){
+        ElaMessageBar::error(ElaMessageBarType::BottomRight,"用户创建失败!",query.lastError().text(),3000);
+        return false;
+    }
+
+    // 获取新创建用户的ID
+    int newUserID = query.lastInsertId().toInt();
+
+    // 创建用户对象
+    this->usr = new User;
+    this->usr->id = newUserID;
+    this->usr->name = name;
+    this->usr->email = "";
+    this->usr->dbName = userDBName;
+
+    // 创建用户专属数据库
+    if(!createUserDatabase(userDBName)){
+        // 如果数据库创建失败，删除刚才插入的用户记录
+        query.prepare("DELETE FROM users WHERE UserID = ?");
+        query.addBindValue(newUserID);
+        query.exec();
+
+        delete this->usr;
+        this->usr = nullptr;
+
+        ElaMessageBar::error(ElaMessageBarType::BottomRight,"用户数据库创建失败!","请重试",3000);
+        return false;
+    }
+
+    return true;
+}
+
+bool MainWindow::createUserDatabase(const QString& dbName){
+    // 创建用户专属的数据库
+    Database* userDB = nullptr;
+    try {
+        userDB = new Database(dbName);
+        delete userDB; // 只是为了初始化数据库，然后删除对象
+        return true;
+    } catch (...) {
+        if(userDB) delete userDB;
+        return false;
+    }
 }
 
 void MainWindow::Logout(){
