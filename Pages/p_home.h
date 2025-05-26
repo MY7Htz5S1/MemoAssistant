@@ -12,7 +12,7 @@ private:
     ElaText *headLine;
     QVBoxLayout *contentLayout;
 public:
-    P_Home(QWidget *parent = nullptr);
+    Q_INVOKABLE P_Home(QWidget *parent = nullptr);
     void createNewPage();
 };
 
