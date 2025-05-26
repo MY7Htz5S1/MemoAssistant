@@ -13,8 +13,8 @@ private:
 
     ElaFlowLayout *flowLayout;
 public:
-    P_Docker(QVector<Task>& tsk, QWidget *parent = nullptr);
-    void showTasks();
+    Q_INVOKABLE P_Docker(QVector<Task>& tsk, QWidget *parent = nullptr);
+    void showTasks(SortType);
 };
 
 #endif // P_DOCKER_H
