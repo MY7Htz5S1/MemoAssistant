@@ -12,6 +12,10 @@
 #include "Pages/p_home.h"
 #include "QVBoxLayout"
 #include "ElaDockWidget.h"
+#include "userChoiceDialog.h"
+
+// 前向声明
+class LoginDialog;
 
 class MainWindow : public ElaWindow
 {
@@ -50,9 +54,19 @@ public:
     void updateDocker();
 
 private:
-    // 新增的私有方法
+    // 登录相关方法
+    void showLoginDialog();
+    void handleLoginAttempt(const QString& name, const QString& pwd, LoginDialog* ld);
+    void showUserChoiceDialog(const QString& name, const QString& pwd);
+    void createNewUserWithCredentials(const QString& name, const QString& pwd);
+
+    // 数据库相关方法
     bool createNewUser(const QString& name, const QString& pwd, QSqlQuery& query);
     bool createUserDatabase(const QString& dbName);
+
+    // 新增：用户菜单相关方法
+    void showUserMenu();
+    void confirmLogout();
 };
 
 #endif // MAINWINDOW_H
