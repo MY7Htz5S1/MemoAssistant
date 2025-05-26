@@ -80,7 +80,7 @@ bool MainWindow::initAccountDB(QSqlError& mess){
         accountDB = QSqlDatabase::database("ACCOUNT");
     }else{
         accountDB = QSqlDatabase::addDatabase("QSQLITE","ACCOUNT");
-        accountDB.setDatabaseName("./data/accounts.db");
+        accountDB.setDatabaseName("accounts.db");
 
         if(!accountDB.open()){
             qDebug()<<"accountDB open failed!" << accountDB.lastError();
