@@ -6,7 +6,7 @@ class P_Help : public ElaScrollPage
 {
     Q_OBJECT
 public:
-    P_Help(QWidget *parent = nullptr);
+    Q_INVOKABLE P_Help(QWidget *parent = nullptr);
 };
 
 #endif // P_HELP_H
