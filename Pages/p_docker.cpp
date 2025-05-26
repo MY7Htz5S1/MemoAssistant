@@ -6,12 +6,12 @@
 P_Docker::P_Docker(QVector<Task>& tsk, QWidget* parent):
     QWidget(parent), tasks(tsk)
 {
-    showTasks();
+    showTasks(ByDate);
 }
 
-void P_Docker::showTasks(){
+void P_Docker::showTasks(SortType st){
+    sortTasks(tasks,st);
 
-    std::sort(tasks.begin(),tasks.end(),sortByDate());
     flowLayout = new ElaFlowLayout(this,0, 5, 5);
     flowLayout->setIsAnimation(true);
     //ElaReminderCard *card;
