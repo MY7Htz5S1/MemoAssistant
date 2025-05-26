@@ -3,6 +3,8 @@
 
 #include <QDateTime>
 #include <QVector>
+#include <algorithm>
+
 struct Task{
     int taskID;
     QString taskName;
@@ -18,6 +20,12 @@ struct User{
     QString name;
     QString email;
     QString dbName;
+};
+
+enum SortType{
+    ByDate,
+    ByPriority,
+    ByTags
 };
 
 struct sortByDate{
@@ -49,5 +57,22 @@ struct sortByTags{
         return t1.tags < t2.tags;
     }
 };
+
+void sortTasks(QVector<Task> &tsk,SortType st){
+    switch(st){
+    case ByDate:
+        std::sort(tsk.begin(),tsk.end(), sortByDate());
+        break;
+    case ByPriority:
+        std::sort(tsk.begin(),tsk.end(), sortByPriority());
+        break;
+    case ByTags:
+        std::sort(tsk.begin(),tsk.end(), sortByTags());
+        break;
+    default:
+        throw "SortType Error!";
+    }
+
+}
 
 #endif // PUBLICHEADER_H
