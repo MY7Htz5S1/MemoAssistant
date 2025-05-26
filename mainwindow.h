@@ -35,6 +35,7 @@ private:
 
     //Docker
     ElaDockWidget *rDocker{nullptr};
+
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -47,5 +48,11 @@ public:
     void Logout();
     void updateUserInfoCard();
     void updateDocker();
+
+private:
+    // 新增的私有方法
+    bool createNewUser(const QString& name, const QString& pwd, QSqlQuery& query);
+    bool createUserDatabase(const QString& dbName);
 };
+
 #endif // MAINWINDOW_H
