@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "QHBoxLayout"
 #include "QIcon"
+#include <QDir>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include "ElaMessageBar.h"
@@ -42,7 +43,7 @@ void MainWindow::initWindow(){
 }
 
 void MainWindow::initDB(QString dbName){
-    if(!db){
+    if(db){
         delete db;
     }
     db = new Database(dbName);
@@ -75,36 +76,48 @@ void MainWindow::initContent(){
 }
 
 
-bool MainWindow::initAccountDB(QSqlError& mess){
-    if(QSqlDatabase::contains("ACCOUNT")){
+bool MainWindow::initAccountDB(QSqlError& mess) {
+    // 确保data目录存在
+    QDir dataDir;
+    if(!dataDir.exists("./data")) {
+        dataDir.mkpath("./data");
+    }
+
+    if(QSqlDatabase::contains("ACCOUNT")) {
         accountDB = QSqlDatabase::database("ACCOUNT");
-    }else{
-        accountDB = QSqlDatabase::addDatabase("QSQLITE","ACCOUNT");
+    } else {
+        accountDB = QSqlDatabase::addDatabase("QSQLITE", "ACCOUNT");
         accountDB.setDatabaseName("./data/accounts.db");
 
-        if(!accountDB.open()){
-            qDebug()<<"accountDB open failed!" << accountDB.lastError();
+        if(!accountDB.open()) {
+            qDebug() << "accountDB open failed!" << accountDB.lastError();
             mess = accountDB.lastError();
             return false;
-        }else{
+        } else {
             QSqlQuery query(accountDB);
-            query.exec("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'AND name = 'users';");
-            query.next();
-            if(query.value(0).toInt() == 1){
+
+            // 检查users表是否存在，如果不存在则创建
+            if(!query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='users';")) {
+                qDebug() << "Query failed!" << query.lastError();
                 accountDB.close();
-                return true;
-            }
-            bool isOK = query.exec("CREATE TABLE users("
-                "UserID INTEGER PRIMARY KEY AUTOINCREMENT,"
-                "UserName TEXT NOT NULL,"
-                "UserEmail TEXT DEFAULT '',"
-                "UserPsw TEXT DEFAULT '',"
-                "UserDBName TEXT NOT NULL);"
-            );
-            if(!isOK){
-                qDebug()<<"init failed!" << query.lastError();
-                mess = query.lastError();
                 return false;
+            }
+
+            if(!query.next()) { // 表不存在
+                bool isOK = query.exec("CREATE TABLE users("
+                                       "UserID INTEGER PRIMARY KEY AUTOINCREMENT,"
+                                       "UserName TEXT NOT NULL UNIQUE,"  // 添加UNIQUE约束确保用户名唯一
+                                       "UserEmail TEXT DEFAULT '',"
+                                       "UserPsw TEXT DEFAULT '',"
+                                       "UserDBName TEXT NOT NULL);"
+                                       );
+
+                if(!isOK) {
+                    qDebug() << "Table creation failed!" << query.lastError();
+                    mess = query.lastError();
+                    accountDB.close();
+                    return false;
+                }
             }
             accountDB.close();
         }
