@@ -13,6 +13,7 @@
 #include "QVBoxLayout"
 #include "ElaDockWidget.h"
 #include "userChoiceDialog.h"
+#include <QMessageBox>
 
 // 前向声明
 class LoginDialog;
@@ -53,6 +54,20 @@ public:
     void updateUserInfoCard();
     void updateDocker();
 
+    // 公共接口：检查登录状态
+    bool isLoggedIn() const { return hasLoggedIn; }
+    User* getCurrentUser() const { return usr; }
+
+private slots:
+    // 用户信息卡片点击处理
+    void handleUserInfoCardClick();
+
+    // 退出登录确认
+    void confirmLogout();
+
+    // 执行退出登录
+    void performLogout();
+
 private:
     // 登录相关方法
     void showLoginDialog();
@@ -64,9 +79,14 @@ private:
     bool createNewUser(const QString& name, const QString& pwd, QSqlQuery& query);
     bool createUserDatabase(const QString& dbName);
 
-    // 新增：用户菜单相关方法
+    // 用户菜单相关方法
     void showUserMenu();
-    void confirmLogout();
+
+    // 清理用户数据
+    void clearUserData();
+
+    // 重置界面到默认状态
+    void resetToDefaultState();
 };
 
 #endif // MAINWINDOW_H

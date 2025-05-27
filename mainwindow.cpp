@@ -1,12 +1,14 @@
 #include "mainwindow.h"
 #include "QHBoxLayout"
 #include "QIcon"
+#include <QDir>
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include "ElaMessageBar.h"
 #include "logindialog.h"
 #include "Pages/p_docker.h"
 #include "ElaMenu.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : ElaWindow(parent)
@@ -21,29 +23,90 @@ MainWindow::MainWindow(QWidget *parent)
     }
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+    // 清理资源
+    clearUserData();
+    if(db) {
+        delete db;
+        db = nullptr;
+    }
+}
 
 void MainWindow::initWindow(){
     setWindowIcon(QIcon(":/img/icon.ico"));
     setWindowTitle("智能备忘录助手");
     resize(1200, 740);
 
-    connect(this,&ElaWindow::userInfoCardClicked,this,[=](){
-        if(!hasLoggedIn){
-            Login();
-        }else{
-            ElaMenu *userInfoCardMenu = new ElaMenu(this);
-            QAction* action = new QAction("登出");
-            connect(action,&QAction::toggled,this,&MainWindow::Logout);
+    // 连接用户信息卡片点击事件
+    connect(this, &ElaWindow::userInfoCardClicked, this, &MainWindow::handleUserInfoCardClick);
+}
 
-            userInfoCardMenu->addAction(action);
-        }
-    });
+void MainWindow::handleUserInfoCardClick() {
+    if(!hasLoggedIn) {
+        // 未登录，显示登录对话框
+        Login();
+    } else {
+        // 已登录，显示用户菜单
+        showUserMenu();
+    }
+}
+
+void MainWindow::showUserMenu() {
+    ElaMenu *userInfoCardMenu = new ElaMenu(this);
+
+    // 添加用户信息显示
+    QAction* userInfoAction = new QAction(QString("当前用户: %1").arg(usr->name));
+    userInfoAction->setEnabled(false); // 禁用点击，只作为信息显示
+    userInfoCardMenu->addAction(userInfoAction);
+
+    userInfoCardMenu->addSeparator();
+
+    // 添加退出登录选项
+    QAction* logoutAction = new QAction("退出登录");
+    logoutAction->setIcon(QIcon(":/img/logout.png")); // 如果有图标的话
+    connect(logoutAction, &QAction::triggered, this, &MainWindow::confirmLogout);
+    userInfoCardMenu->addAction(logoutAction);
+
+    // 在用户信息卡片位置显示菜单
+    QPoint globalPos = this->mapToGlobal(QPoint(50, 50)); // 根据实际位置调整
+    userInfoCardMenu->exec(globalPos);
+
+    // 清理菜单
+    userInfoCardMenu->deleteLater();
+}
+
+void MainWindow::confirmLogout() {
+    // 创建确认对话框
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this,
+        "确认退出",
+        QString("确定要退出登录吗？\n当前用户: %1").arg(usr->name),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+        );
+
+    if (reply == QMessageBox::Yes) {
+        performLogout();
+    }
+}
+
+void MainWindow::performLogout() {
+    // 显示退出登录消息
+    ElaMessageBar::information(
+        ElaMessageBarType::TopRight,
+        "退出登录",
+        QString("用户 %1 已退出登录").arg(usr->name),
+        2000
+        );
+
+    // 执行退出登录
+    Logout();
 }
 
 void MainWindow::initDB(QString dbName){
-    if(!db){
+    if(db){
         delete db;
+        db = nullptr;
     }
     db = new Database(dbName);
     qDebug()<<"open database named " + dbName;
@@ -74,37 +137,48 @@ void MainWindow::initContent(){
     this->addFooterNode("设置",pSetting,settingKey,0,ElaIconType::GearComplex);
 }
 
+bool MainWindow::initAccountDB(QSqlError& mess) {
+    // 确保data目录存在
+    QDir dataDir;
+    if(!dataDir.exists("./data")) {
+        dataDir.mkpath("./data");
+    }
 
-bool MainWindow::initAccountDB(QSqlError& mess){
-    if(QSqlDatabase::contains("ACCOUNT")){
+    if(QSqlDatabase::contains("ACCOUNT")) {
         accountDB = QSqlDatabase::database("ACCOUNT");
-    }else{
-        accountDB = QSqlDatabase::addDatabase("QSQLITE","ACCOUNT");
+    } else {
+        accountDB = QSqlDatabase::addDatabase("QSQLITE", "ACCOUNT");
         accountDB.setDatabaseName("./data/accounts.db");
 
-        if(!accountDB.open()){
-            qDebug()<<"accountDB open failed!" << accountDB.lastError();
+        if(!accountDB.open()) {
+            qDebug() << "accountDB open failed!" << accountDB.lastError();
             mess = accountDB.lastError();
             return false;
-        }else{
+        } else {
             QSqlQuery query(accountDB);
-            query.exec("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table'AND name = 'users';");
-            query.next();
-            if(query.value(0).toInt() == 1){
+
+            // 检查users表是否存在，如果不存在则创建
+            if(!query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name='users';")) {
+                qDebug() << "Query failed!" << query.lastError();
                 accountDB.close();
-                return true;
-            }
-            bool isOK = query.exec("CREATE TABLE users("
-                "UserID INTEGER PRIMARY KEY AUTOINCREMENT,"
-                "UserName TEXT NOT NULL,"
-                "UserEmail TEXT DEFAULT '',"
-                "UserPsw TEXT DEFAULT '',"
-                "UserDBName TEXT NOT NULL);"
-            );
-            if(!isOK){
-                qDebug()<<"init failed!" << query.lastError();
-                mess = query.lastError();
                 return false;
+            }
+
+            if(!query.next()) { // 表不存在
+                bool isOK = query.exec("CREATE TABLE users("
+                                       "UserID INTEGER PRIMARY KEY AUTOINCREMENT,"
+                                       "UserName TEXT NOT NULL UNIQUE,"  // 添加UNIQUE约束确保用户名唯一
+                                       "UserEmail TEXT DEFAULT '',"
+                                       "UserPsw TEXT DEFAULT '',"
+                                       "UserDBName TEXT NOT NULL);"
+                                       );
+
+                if(!isOK) {
+                    qDebug() << "Table creation failed!" << query.lastError();
+                    mess = query.lastError();
+                    accountDB.close();
+                    return false;
+                }
             }
             accountDB.close();
         }
@@ -286,21 +360,57 @@ bool MainWindow::createUserDatabase(const QString& dbName){
 }
 
 void MainWindow::Logout(){
-    delete usr;
-    usr = nullptr;
+    // 记录退出的用户名（用于显示消息）
+    QString userName = usr ? usr->name : "Unknown";
 
-    initDB();
+    // 清理用户数据
+    clearUserData();
+
+    // 重置登录状态
+    hasLoggedIn = false;
+
+    // 重置到默认状态
+    resetToDefaultState();
+
+    // 关闭账户数据库连接
+    if(accountDB.isOpen()) {
+        accountDB.close();
+    }
+
+    qDebug() << "User" << userName << "logged out successfully";
+}
+
+void MainWindow::clearUserData() {
+    // 清理用户对象
+    if(usr) {
+        delete usr;
+        usr = nullptr;
+    }
+
+    // 清空任务列表
+    tasks.clear();
+}
+
+void MainWindow::resetToDefaultState() {
+    // 使用默认数据库
+    initDB("default");
+
+    // 更新用户信息卡片显示
+    updateUserInfoCard();
+
+    // 更新Docker显示
+    updateDocker();
 }
 
 void MainWindow::updateUserInfoCard(){
     if(usr == nullptr){
         setUserInfoCardPixmap(QPixmap(":/img/touxiang.png"));
         setUserInfoCardTitle("请登录");
-        setUserInfoCardSubTitle("");
+        setUserInfoCardSubTitle("点击登录账户");
     }else{
         qDebug()<<usr->name << usr->email;
         setUserInfoCardTitle(usr->name);
-        setUserInfoCardSubTitle(usr->email);
+        setUserInfoCardSubTitle(usr->email.isEmpty() ? "已登录" : usr->email);
     }
 }
 
@@ -308,6 +418,7 @@ void MainWindow::updateDocker(){
     if(rDocker){
         removeDockWidget(rDocker);
         delete rDocker;
+        rDocker = nullptr;
     }
     rDocker = new ElaDockWidget("今日事项", this);
     rDocker->setWidget(new P_Docker(tasks ,this));
