@@ -129,20 +129,20 @@ void P_Home::onContinuousCheckChanged(int state) {
 }
 
 void P_Home::onSaveButtonClicked() {
-        if (!validateInput()) {
-            return;
-        }
+    if (!validateInput()) {
+        return;
+    }
 
-        // 检查数据库是否可用
-        if (!mainWindow || !mainWindow->getDatabase()) {
-            ElaMessageBar::error(
-                ElaMessageBarType::TopRight,
-                "数据库错误",
-                "无法连接到数据库，请重试",
-                2000
-                );
-            return;
-        }
+    // 检查数据库是否可用
+    if (!mainWindow || !mainWindow->getDatabase()) {
+        ElaMessageBar::error(
+            ElaMessageBarType::TopRight,
+            "数据库错误",
+            "无法连接到数据库，请重试",
+            2000
+            );
+        return;
+    }
 
     // 创建任务对象
     Task newTask;
@@ -179,7 +179,7 @@ void P_Home::onSaveButtonClicked() {
         clearForm();
 
         // 更新任务列表和Docker
-        mainWindow->initDB(mainWindow->getCurrentUser()->dbName);
+        mainWindow->initDB(mainWindow->getCurrentDatabaseName());
     } else {
         ElaMessageBar::error(
             ElaMessageBarType::TopRight,
