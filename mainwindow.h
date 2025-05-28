@@ -57,6 +57,7 @@ public:
     // 公共接口：检查登录状态
     bool isLoggedIn() const { return hasLoggedIn; }
     User* getCurrentUser() const { return usr; }
+    Database* getDatabase() const { return db; }
 
 private slots:
     // 用户信息卡片点击处理
