@@ -58,7 +58,7 @@ struct sortByTags{
     }
 };
 
-void sortTasks(QVector<Task> &tsk,SortType st){
+inline void sortTasks(QVector<Task> &tsk,SortType st){
     switch(st){
     case ByDate:
         std::sort(tsk.begin(),tsk.end(), sortByDate());
