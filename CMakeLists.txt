@@ -12,13 +12,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets sql)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets sql)
 
-FILE(GLOB ORIGON *.cpp *.h)
+FILE(GLOB ORIGIN *.cpp *.h)
 FILE(GLOB PAGES Pages/*.cpp Pages/*.h)
 
 source_group(Pages FILES ${PAGES})
 
 set(PROJECT_SOURCES
-        ${ORIGON}
+        ${ORIGIN}
         ${PAGES}
 )
 
@@ -28,6 +28,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         ${PROJECT_SOURCES}
         include/ElaWidgetTools.qrc
         res/res.qrc
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET MemoAssistant APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

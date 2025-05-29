@@ -12,6 +12,11 @@
 #include "Pages/p_home.h"
 #include "QVBoxLayout"
 #include "ElaDockWidget.h"
+#include "userChoiceDialog.h"
+#include <QMessageBox>
+
+// 前向声明
+class LoginDialog;
 
 class MainWindow : public ElaWindow
 {
@@ -48,11 +53,42 @@ public:
     void Logout();
     void updateUserInfoCard();
     void updateDocker();
+    bool isLoggedIn() const { return hasLoggedIn; }
+    User* getCurrentUser() const { return usr; }
+    Database* getDatabase() const { return db; }
+    QString getCurrentDatabaseName() const {
+        return (hasLoggedIn && usr) ? usr->dbName : "default";
+    }
+
+private slots:
+    // 用户信息卡片点击处理
+    void handleUserInfoCardClick();
+
+    // 退出登录确认
+    void confirmLogout();
+
+    // 执行退出登录
+    void performLogout();
 
 private:
-    // 新增的私有方法
+    // 登录相关方法
+    void showLoginDialog();
+    void handleLoginAttempt(const QString& name, const QString& pwd, LoginDialog* ld);
+    void showUserChoiceDialog(const QString& name, const QString& pwd);
+    void createNewUserWithCredentials(const QString& name, const QString& pwd);
+
+    // 数据库相关方法
     bool createNewUser(const QString& name, const QString& pwd, QSqlQuery& query);
     bool createUserDatabase(const QString& dbName);
+
+    // 用户菜单相关方法
+    void showUserMenu();
+
+    // 清理用户数据
+    void clearUserData();
+
+    // 重置界面到默认状态
+    void resetToDefaultState();
 };
 
 #endif // MAINWINDOW_H
