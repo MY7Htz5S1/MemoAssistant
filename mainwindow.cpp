@@ -16,11 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     // qDebug() << "Available drivers:" << QSqlDatabase::drivers();
     initWindow();
     initContent();
-    if(Login()){
-        initDB(usr->name);
-    }else{
-        initDB();
-    }
+    initDB();
 }
 
 MainWindow::~MainWindow() {
@@ -37,6 +33,8 @@ void MainWindow::initWindow(){
     setWindowTitle("智能备忘录助手");
     resize(1200, 740);
 
+    // 禁用主题切换按钮
+    setWindowButtonFlag(ElaAppBarType::ThemeChangeButtonHint, false);
     // 连接用户信息卡片点击事件
     connect(this, &ElaWindow::userInfoCardClicked, this, &MainWindow::handleUserInfoCardClick);
 }
@@ -129,7 +127,7 @@ void MainWindow::initContent(){
 
     this->addPageNode("主页", pHome, ElaIconType::House);
     this->addPageNode("事项管理", pManage, ElaIconType::Book);
-    this->addPageNode("时间试图",pTimeline, ElaIconType::Timeline);
+    this->addPageNode("时间视图",pTimeline, ElaIconType::Timeline);
     this->addPageNode("近期总结",pReport, ElaIconType::Newspaper);
 
     this->addFooterNode("关于",pAbout,aboutKey,0,ElaIconType::User);
@@ -405,10 +403,9 @@ void MainWindow::resetToDefaultState() {
 void MainWindow::updateUserInfoCard(){
     if(usr == nullptr){
         setUserInfoCardPixmap(QPixmap(":/img/touxiang.png"));
-        setUserInfoCardTitle("请登录");
-        setUserInfoCardSubTitle("点击登录账户");
+        setUserInfoCardTitle("访客模式");
+        setUserInfoCardSubTitle("使用默认数据库 · 点击登录");
     }else{
-        qDebug()<<usr->name << usr->email;
         setUserInfoCardTitle(usr->name);
         setUserInfoCardSubTitle(usr->email.isEmpty() ? "已登录" : usr->email);
     }
