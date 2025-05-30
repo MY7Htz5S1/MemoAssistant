@@ -6,13 +6,17 @@
 #include <algorithm>
 
 struct Task{
-    int taskID;
+    int taskID = -1;
     QString taskName;
     bool isContinuous;
     QDateTime startTime;
     QDateTime stopTime;
     int priority;
     QVector<QString> tags;
+
+    explicit operator bool() const {
+        return taskID != -1;
+    }
 };
 
 struct User{

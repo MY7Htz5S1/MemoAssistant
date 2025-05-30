@@ -5,7 +5,6 @@
 #include "ElaLineEdit.h"
 #include "ElaPushButton.h"
 #include "ElaText.h"
-#include "QVBoxLayout"
 #include "QHBoxLayout"
 #include "ElaProgressBar.h"
 #include "QTimer"
@@ -27,7 +26,7 @@ private:
     ElaProgressBar *progressBar;
     QTimer *timer;
 public:
-    LoginDialog(QWidget *parent = nullptr);
+    explicit LoginDialog(QWidget *parent = nullptr);
     void keyPressEvent(QKeyEvent*) override;
 public slots:
     void getFeedback(bool success);

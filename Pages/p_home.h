@@ -4,54 +4,32 @@
 #include "ElaScrollPage.h"
 #include "ElaText.h"
 #include "ElaLineEdit.h"
-#include "ElaPushButton.h"
-#include "ElaComboBox.h"
-#include "ElaCheckBox.h"
 #include "ElaMessageBar.h"
-#include "../database.h"
 #include "../publicheader.h"
 #include <QDateTimeEdit>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QGridLayout>
-#include <QGroupBox>
+
+#include "../CustomWidgets/ManageTaskWidget.h"
 
 class MainWindow;
 
 class P_Home : public ElaScrollPage
 {
     Q_OBJECT
-private:
-    QWidget* widget;
-    ElaText *headLine;
-    QVBoxLayout *contentLayout;
-
-    // 新建备忘录表单组件
-    QGroupBox *newTaskGroup;
-    ElaLineEdit *taskNameEdit;
-    ElaCheckBox *isContinuousCheck;
-    QDateTimeEdit *startTimeEdit;
-    QDateTimeEdit *stopTimeEdit;
-    ElaComboBox *priorityCombo;
-    ElaLineEdit *tagsEdit;
-    ElaPushButton *saveButton;
-    ElaPushButton *clearButton;
-
+    QWidget* widget{};
+    ElaText *headLine{};
+    QVBoxLayout *contentLayout{};
+    ManageTaskWidget *manageTaskWidget{}; // 使用新的Widget
     MainWindow *mainWindow;
 
 public:
-    Q_INVOKABLE P_Home(QWidget *parent = nullptr);
+    explicit P_Home(QWidget *parent = nullptr);
     void createNewPage();
 
-private slots:
-    void onContinuousCheckChanged(int state);
-    void onSaveButtonClicked();
-    void onClearButtonClicked();
+    private slots:
+        void handleTaskSaved(const Task &newTask) const; // 处理新任务保存的槽函数
 
-private:
-    void createNewTaskForm();
-    void clearForm();
-    bool validateInput();
+signals:
+    void databaseChanged() const;
 };
 
 #endif // P_HOME_H
