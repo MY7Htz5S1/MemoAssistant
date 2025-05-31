@@ -70,6 +70,8 @@ private slots:
     // 执行退出登录
     void performLogout();
 
+    void databaseChangedSlot();
+
 private:
     // 登录相关方法
     void showLoginDialog();

@@ -15,8 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     // qDebug() << "Available drivers:" << QSqlDatabase::drivers();
     initWindow();
-    initContent();
     initDB();
+    initContent();
 }
 
 MainWindow::~MainWindow() {
@@ -114,8 +114,10 @@ void MainWindow::initDB(QString dbName){
 }
 
 void MainWindow::initContent(){
+
     pHome = new P_Home(this);
-    pManage = new P_Manage(this);
+    connect(pHome,&P_Home::databaseChanged,this,&MainWindow::databaseChangedSlot);
+    pManage = new P_Manage(tasks,this);
     pTimeline = new P_Timeline(this);
     pReport = new P_Report(this);
     pSetting = new P_Setting(this);
@@ -422,4 +424,9 @@ void MainWindow::updateDocker(){
     this->addDockWidget(Qt::RightDockWidgetArea, rDocker);
     resizeDocks({rDocker},{300},Qt::Horizontal);
     qDebug()<<tasks.size();
+}
+
+void MainWindow::databaseChangedSlot() {
+    updateDocker();
+
 }

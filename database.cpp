@@ -30,9 +30,6 @@ bool Database::initDatabase(){
 
     db = QSqlDatabase::addDatabase("QSQLITE", dbName);
     db.setDatabaseName("./data/"+dbName+".db");
-    db.setUserName("admin");
-    db.setPassword("12345678");
-
     QString initstr = "CREATE TABLE "+ tbName +" ("+
                       "TaskID INTEGER PRIMARY KEY AUTOINCREMENT,"+
                       "TaskName TEXT NOT NULL,"+

@@ -9,17 +9,23 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(QT_SDK_DIR C:/Qt/6.9.0/msvc2022_64)
+list(APPEND CMAKE_PREFIX_PATH ${QT_SDK_DIR})
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets sql)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets sql)
 
 FILE(GLOB ORIGIN *.cpp *.h)
 FILE(GLOB PAGES Pages/*.cpp Pages/*.h)
+FILE(GLOB CUSTOMWIDGETS CustomWidgets/*.cpp CustomWidgets/*.h)
 
 source_group(Pages FILES ${PAGES})
+source_group(CustomWidgets FILES ${CUSTOMWIDGETS})
 
 set(PROJECT_SOURCES
         ${ORIGIN}
         ${PAGES}
+        ${CUSTOMWIDGETS}
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

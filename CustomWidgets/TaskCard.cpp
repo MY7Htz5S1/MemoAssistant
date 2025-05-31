@@ -1,0 +1,119 @@
+//
+// Created by Keranol on 25-5-29.
+//
+
+#include "TaskCard.h"
+
+#include <ElaMessageBar.h>
+#include <ElaPushButton.h>
+#include <ElaWidget.h>
+
+#include <utility>
+
+TaskCard::TaskCard(const Task& tsk, QWidget *parent):
+    QGroupBox(parent),
+    task(tsk) {
+    showCard();
+}
+
+void TaskCard::showCard() {
+    layout = new QGridLayout(this);
+    layout->setSpacing(10);
+    layout->setContentsMargins(10,10,10,10);
+    int row = 0;
+
+    title = new ElaText(task.taskName, 25, this);
+    layout->addWidget(title,row,0,1,0,Qt::AlignLeft);
+    row++;
+
+    QString starString{};
+    for(int i = 0;i<task.priority;i++) {
+        starString+="⭐";
+    }
+    stars = new ElaText(starString, 15, this);
+    layout->addWidget(stars,row,0,1,0,Qt::AlignLeft);
+    row++;
+
+    continuousText = new ElaText("连续事件:",15,this);
+    layout->addWidget(continuousText,row,0,Qt::AlignLeft);
+
+    continuousSwitch = new ElaToggleSwitch(this);
+    continuousSwitch->setIsToggled(task.isContinuous);
+    continuousSwitch->setEnabled(false);
+    layout->addWidget(continuousSwitch,row,1,Qt::AlignLeft);
+    row++;
+
+    startText = new ElaText("开始于:",15,this);
+    layout->addWidget(startText,row,0,Qt::AlignLeft);
+
+    startDT = new ElaText(this);
+    startDT->setText(task.startTime.toString("yyyy-MM-dd hh:mm:ss"));
+    startDT->setTextPixelSize(15);
+    //startDT->setFocusPolicy(Qt::NoFocus);
+    layout->addWidget(startDT,row,1,Qt::AlignCenter);
+    row++;
+
+    if(task.isContinuous) {
+        stopText = new ElaText("结束于:",15,this);
+        layout->addWidget(stopText,row,0,Qt::AlignLeft);
+
+        stopDT = new ElaText(this);
+        stopDT->setText(task.stopTime.toString("yyyy-MM-dd hh:mm:ss"));
+        stopDT->setTextPixelSize(15);
+        layout->addWidget(stopDT,row,1,Qt::AlignCenter);
+        row++;
+    }
+    if(!task.tags.empty()) {
+        qDebug()<<task.tags;
+        tags = new ElaFlowLayout();
+        for(auto& t:task.tags) {
+            auto *tag = new QPushButton("#"+t,this);
+            tag->setFixedSize(10,10);
+            tag->setStyleSheet("border-radius: 5px; "
+                           "background-color: rgba(224, 224, 224, 150); "  // 半透明背景
+                           "padding: 10px;");
+            tags->addWidget(tag);
+        }
+        layout->addLayout(tags,row,0,1,0, Qt::AlignCenter);
+        row++;
+    }
+
+    buttons = new QHBoxLayout();
+    buttons->setSpacing(10);
+    buttons->setContentsMargins(10,10,10,10);
+    buttons->addStretch();
+    deleteButton = new ElaPushButton("删除",this);
+    buttons->addWidget(deleteButton);
+    buttons->addStretch();
+    changeButton = new ElaPushButton("修改",this);
+    buttons->addWidget(changeButton);
+    buttons->addStretch();
+    layout->addLayout(buttons,row,0,1,0, Qt::AlignCenter);
+
+    layout->setColumnStretch(2,5);
+    connect(changeButton,&ElaPushButton::clicked,this,&TaskCard::changeButtonClicked);
+}
+
+
+void TaskCard::changeButtonClicked() {
+    changeWindow = new ElaWidget();
+    changeWindow->setWindowTitle("修改事项");
+    changeWindow->setWindowButtonFlag(ElaAppBarType::StayTopButtonHint, false);
+    changeWindow->setWindowFlag(Qt::WindowStaysOnTopHint);
+    changeWindow->setWindowModality(Qt::ApplicationModal);
+
+    auto *changeWindowLayout = new QHBoxLayout(changeWindow);
+    taskWidget = new ManageTaskWidget(task,changeWindow);
+    changeWindowLayout->addWidget(taskWidget);
+
+    //connect(taskWidget,&ManageTaskWidget::taskSaved,this,&TaskCard::taskChanged);
+    changeWindow->show();
+}
+
+void TaskCard::taskChanged(Task tsk) {
+    changeWindow->close();
+
+}
+
+
+

@@ -3,6 +3,8 @@
         <file>icon.ico</file>
         <file>touxiang.png</file>
         <file>login.png</file>
+        <file>uncontinuous.png</file>
+        <file>continuous.png</file>
     </qresource>
     <qresource prefix="/"/>
 </RCC>

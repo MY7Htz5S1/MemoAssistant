@@ -1,38 +1,57 @@
 #include "p_docker.h"
-#include "algorithm"
+
+#include <ElaPushButton.h>
+
 #include "ElaInteractiveCard.h"
 #include "ElaText.h"
-#include "ElaReminderCard.h"
+
 P_Docker::P_Docker(QVector<Task>& tsk, QWidget* parent):
     QWidget(parent), tasks(tsk)
 {
+    text = new ElaPushButton("今天没有事项~", this);
+    text->setFixedSize(150,30);
     showTasks(ByDate);
 }
 
 void P_Docker::showTasks(SortType st){
     sortTasks(tasks,st);
 
-    flowLayout = new ElaFlowLayout(this,0, 5, 5);
+    flowLayout = new ElaFlowLayout(this,5, 5, 5);
     flowLayout->setIsAnimation(true);
+    flowLayout->addWidget(text);
     //ElaReminderCard *card;
-    ElaInteractiveCard *card;
+    const QDate presentD = QDate::currentDate();
     for(auto &p:tasks){
-        QWidget* cardGroup = new QWidget(this);
-        QHBoxLayout*cardLayout = new QHBoxLayout(cardGroup);
-        QVBoxLayout*priorityBox = new QVBoxLayout(cardGroup);
+        if(!((!p.isContinuous&& p.startTime.date() == presentD) ||
+            (p.isContinuous&&p.startTime.date()<=presentD &&p.stopTime.date()>=presentD))) {
+            continue;
+        }
+        text->setVisible(false);
+        auto* cardGroup = new QWidget(this);
+        auto* cardLayout = new QHBoxLayout(cardGroup);
 
+        auto *flag = new QLabel(cardGroup);
+        QPixmap flagImg;
+        if(p.isContinuous) {
+            flagImg = QPixmap(":/img/continuous.png");
+        }else {
+            flagImg = QPixmap(":/img/uncontinuous.png");
+        }
+        flag->setPixmap(flagImg.scaled(20,20, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         qDebug()<<p.taskName<<p.isContinuous<<p.startTime;
+
+        auto* priorityBox = new QVBoxLayout();
         int n = p.priority;
         priorityBox->addStretch();
         while(n--){
-            ElaText *star = new ElaText("⭐",cardGroup);
+            auto *star = new ElaText("⭐",cardGroup);
             star->setTextPixelSize(10);
             priorityBox->addWidget(star);
         }
         priorityBox->addStretch();
         priorityBox->setSpacing(0);
 
-        card = new ElaInteractiveCard(this);
+        auto *card = new ElaInteractiveCard();
         card->setTitle(p.taskName);
         if(!p.isContinuous){
             card->setSubTitle("起始时间："+p.startTime.toString("MM-dd hh:mm")+"\n");
@@ -45,6 +64,7 @@ void P_Docker::showTasks(SortType st){
         card->setCardPixMode(ElaCardPixType::RoundedRect);
         card->setTitleSpacing(5);
 
+        cardLayout->addWidget(flag);
         cardLayout->addWidget(card);
         cardLayout->addLayout(priorityBox);
 
