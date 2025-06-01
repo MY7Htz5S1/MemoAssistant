@@ -11,23 +11,26 @@
 
 ManageTaskWidget::ManageTaskWidget(QWidget* parent):
     QWidget(parent) {
+    isAddMode = true;
     createNewTaskForm();
 }
 
 ManageTaskWidget::ManageTaskWidget(Task& tsk,QWidget* parent):
     QWidget(parent),
     task(tsk){
+    isAddMode = false;
     createNewTaskForm();
     readTask(task);
+    qDebug()<<"task id:"<<  task.taskID;
 }
 
 void ManageTaskWidget::readTask(Task& tsk) {
     newTaskGroup->setTitle("");
     taskNameEdit->setText(tsk.taskName);
     isContinuousCheck->setChecked(tsk.isContinuous);
-    startDataTimePicker->setDateTime(tsk.startTime);
+    startDateTimePicker->setDateTime(tsk.startTime);
     if(tsk.isContinuous){}
-    stopDataTimePicker->setDateTime(tsk.stopTime);
+    stopDateTimePicker->setDateTime(tsk.stopTime);
     priorityCombo->setCurrentIndex(tsk.priority);
     QString tagsString;
     for(auto i:tsk.tags) {
@@ -67,18 +70,18 @@ void ManageTaskWidget::createNewTaskForm() {
 
     // 开始时间
     ElaText *startLabel = new ElaText("开始时间:",13, newTaskGroup);
-    startDataTimePicker = new DataTimePicker(newTaskGroup);
+    startDateTimePicker = new DateTimePicker(newTaskGroup);
     formLayout->addWidget(startLabel, row, 0,Qt::AlignLeft);
-    formLayout->addWidget(startDataTimePicker, row, 1, 1, 2);
+    formLayout->addWidget(startDateTimePicker, row, 1, 1, 2);
     row++;
 
     // 结束时间（默认禁用）
     stopLabel = new ElaText("结束时间:",13, newTaskGroup);
     stopLabel->setVisible(false);
-    stopDataTimePicker = new DataTimePicker(newTaskGroup);
-    stopDataTimePicker->setVisible(false);
+    stopDateTimePicker = new DateTimePicker(newTaskGroup);
+    stopDateTimePicker->setVisible(false);
     formLayout->addWidget(stopLabel, row, 0,Qt::AlignLeft);
-    formLayout->addWidget(stopDataTimePicker, row, 1, 1, 2);
+    formLayout->addWidget(stopDateTimePicker, row, 1, 1, 2);
     row++;
 
     // 优先级
@@ -129,24 +132,21 @@ void ManageTaskWidget::createNewTaskForm() {
 
 void ManageTaskWidget::onContinuousCheckChanged(int state) {
     stopLabel->setVisible(state == Qt::Checked);
-    stopDataTimePicker->setVisible(state == Qt::Checked);
+    stopDateTimePicker->setVisible(state == Qt::Checked);
 }
 
 void ManageTaskWidget::onSaveButtonClicked() {
     if (!validateInput()) {
         return;
     }
-
     // 创建任务对象
-    Task newTask;
+    Task newTask(task);
     newTask.taskName = taskNameEdit->text().trimmed();
     newTask.isContinuous = isContinuousCheck->isChecked();
-    newTask.startTime = startDataTimePicker->dateTime();
-
+    newTask.startTime = startDateTimePicker->dateTime();
     if (newTask.isContinuous) {
-        newTask.stopTime = stopDataTimePicker->dateTime();
+        newTask.stopTime = stopDateTimePicker->dateTime();
     }
-
     newTask.priority = priorityCombo->currentData().toInt();
 
     // 处理标签
@@ -157,7 +157,6 @@ void ManageTaskWidget::onSaveButtonClicked() {
             newTask.tags.push_back(tag.trimmed());
         }
     }
-
     emit taskSaved(newTask);
     clearForm();
 }
@@ -174,9 +173,9 @@ void ManageTaskWidget::onClearButtonClicked() {
 void ManageTaskWidget::clearForm() {
     taskNameEdit->clear();
     isContinuousCheck->setChecked(false);
-    startDataTimePicker->setDateTime(QDateTime::currentDateTime());
-    stopDataTimePicker->setDateTime(QDateTime::currentDateTime());
-    stopDataTimePicker->setVisible(false);
+    startDateTimePicker->setDateTime(QDateTime::currentDateTime());
+    stopDateTimePicker->setDateTime(QDateTime::currentDateTime());
+    stopDateTimePicker->setVisible(false);
     priorityCombo->setCurrentIndex(1);
     tagsEdit->clear();
 }
@@ -196,14 +195,16 @@ bool ManageTaskWidget::validateInput() {
 
     // 验证时间逻辑
     if (isContinuousCheck->isChecked()) {
-        if (stopDataTimePicker->dateTime() <= startDataTimePicker->dateTime()) {
+        if (stopDateTimePicker->dateTime() <= startDateTimePicker->dateTime()) {
+            qDebug()<<stopDateTimePicker;
+            qDebug()<<"结束时间："<<stopDateTimePicker->dateTime()<<"\n开始时间："<<startDateTimePicker->dateTime();
             ElaMessageBar::warning(
                 ElaMessageBarType::TopRight,
                 "时间错误",
                 "结束时间必须晚于开始时间",
                 2000
             );
-            stopDataTimePicker->setFocus();
+            stopDateTimePicker->setFocus();
             return false;
         }
     }

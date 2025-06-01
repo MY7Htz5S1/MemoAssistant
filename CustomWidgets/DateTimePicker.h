@@ -11,7 +11,7 @@
 #include <QHBoxLayout>
 #include <QGridLayout>
 
-class DataTimePicker:public QGroupBox {
+class DateTimePicker:public QGroupBox {
 	QGridLayout * layout;
 	QHBoxLayout * timeLayout;
 	ElaCalendarPicker *elaCalendarPicker;
@@ -21,7 +21,7 @@ class DataTimePicker:public QGroupBox {
 
 
 public:
-	explicit DataTimePicker(QWidget *parent = nullptr);
+	explicit DateTimePicker(QWidget *parent = nullptr);
 	QDateTime dateTime() const;
 	void setDateTime(const QDateTime& dateTime);
 };

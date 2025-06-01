@@ -5,7 +5,7 @@
 #include <QtSql/QSqlQuery>
 #include <QtSql/QSqlError>
 #include <QDir>
-
+#include "TaskManageEventBus.h"
 Database::Database(QString dbname):dbName(dbname) {
     initDatabase();
 }
@@ -70,9 +70,10 @@ bool Database::initDatabase(){
     return true;
 }
 
-bool Database::insertTask(const Task& t){
+bool Database::insertTask(const Task& t, bool& ok){
     if(!db.open()){
         qDebug()<<"database open failed!" << db.lastError();
+        ok = false;
         return false;
     }
 
@@ -112,9 +113,12 @@ bool Database::insertTask(const Task& t){
         qDebug()<<"Insert failed!" << query.lastError();
         db.close();
         return false;
+        ok = false;
     }
 
     db.close();
+    emit tManage->DatabaseChanged();
+    ok = true;
     return true;
 }
 
@@ -167,4 +171,84 @@ QVector<Task> Database::queryAllTask(){
 
     db.close();
     return tasks;
+}
+
+bool Database::updateTask(const Task& t,bool &ok) {
+    if (!db.open()) {
+        qDebug() << "database open failed!" << db.lastError();
+        ok = false;
+        return false;
+    }
+
+    QJsonDocument jdcm;
+    QJsonArray jarr;
+    for (const auto& tag : t.tags) {
+        jarr.append(tag);
+    }
+    jdcm.setArray(jarr);
+    QString tags = QString::fromUtf8(jdcm.toJson(QJsonDocument::Compact));
+
+    QSqlQuery query(db);
+
+    if (t.isContinuous) {
+        query.prepare("UPDATE " + tbName +
+                      " SET TaskName = ?, IsContinuous = ?, StartTime = ?, StopTime = ?, Priority = ?, Tags = ? " +
+                      "WHERE TaskID = ?");
+        query.addBindValue(t.taskName);
+        query.addBindValue(t.isContinuous ? 1 : 0);
+        query.addBindValue(t.startTime.toString("yyyy-MM-dd hh:mm:ss"));
+        query.addBindValue(t.stopTime.toString("yyyy-MM-dd hh:mm:ss"));
+        query.addBindValue(t.priority);
+        query.addBindValue(tags);
+        query.addBindValue(t.taskID);
+    } else {
+        query.prepare("UPDATE " + tbName +
+                      " SET TaskName = ?, IsContinuous = ?, StartTime = ?, Priority = ?, Tags = ? " +
+                      "WHERE TaskID = ?");
+        query.addBindValue(t.taskName);
+        query.addBindValue(t.isContinuous ? 1 : 0);
+        query.addBindValue(t.startTime.toString("yyyy-MM-dd hh:mm:ss"));
+        query.addBindValue(t.priority);
+        query.addBindValue(tags);
+        query.addBindValue(t.taskID);
+    }
+
+    bool isok = query.exec();
+    if (!isok) {
+        qDebug() << "Update failed!" << query.lastError();
+        db.close();
+        ok = false;
+        return false;
+    }
+
+    db.close();
+    emit tManage->DatabaseChanged();
+    qDebug()<<"database updated!"<<t.taskID<<t.taskName;
+    ok = true;
+    return true;
+}
+
+bool Database::deleteTask(const Task& t, bool &ok) {
+    if (!db.open()) {
+        qDebug() << "database open failed!" << db.lastError();
+        ok = false;
+        return false;
+    }
+
+    QSqlQuery query(db);
+    query.prepare("DELETE FROM " + tbName + " WHERE TaskID = ?");
+    query.addBindValue(t.taskID);
+
+    bool isok = query.exec();
+    if (!isok) {
+        qDebug() << "Delete failed!" << query.lastError();
+        db.close();
+        ok = false;
+        return false;
+    }
+
+    db.close();
+    emit tManage->DatabaseChanged();
+    ok = true;
+    return true;
 }

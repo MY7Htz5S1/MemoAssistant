@@ -10,13 +10,12 @@ class P_Manage : public ElaScrollPage
 {
     Q_OBJECT
     typedef QVector<Task> TaskList;
-    TaskList& tasks;
-    QWidget* widget;
+    QWidget* widget{};
     ElaFlowLayout* layout{nullptr};
 
 public:
     explicit P_Manage(TaskList& tskList, QWidget* parent = nullptr);
-    void updateCards();
+    void updateCards(TaskList& tasks);
 };
 
 #endif // P_MANAGE_H

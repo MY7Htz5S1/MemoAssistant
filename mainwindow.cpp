@@ -10,6 +10,8 @@
 #include "ElaMenu.h"
 #include <QMessageBox>
 
+#include "TaskManageEventBus.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : ElaWindow(parent)
 {
@@ -107,6 +109,10 @@ void MainWindow::initDB(QString dbName){
         db = nullptr;
     }
     db = new Database(dbName);
+    connect(tManage,&TaskManageEventBus::TaskChanged,db,&Database::updateTask);
+    connect(tManage,&TaskManageEventBus::TaskAdded,db,&Database::insertTask);
+    connect(tManage,&TaskManageEventBus::TaskDeleted,db,&Database::deleteTask);
+    connect(tManage,&TaskManageEventBus::DatabaseChanged,this,&MainWindow::databaseChangedSlot);
     qDebug()<<"open database named " + dbName;
     tasks = db->queryAllTask();
     updateUserInfoCard();
@@ -116,7 +122,6 @@ void MainWindow::initDB(QString dbName){
 void MainWindow::initContent(){
 
     pHome = new P_Home(this);
-    connect(pHome,&P_Home::databaseChanged,this,&MainWindow::databaseChangedSlot);
     pManage = new P_Manage(tasks,this);
     pTimeline = new P_Timeline(this);
     pReport = new P_Report(this);
@@ -427,6 +432,10 @@ void MainWindow::updateDocker(){
 }
 
 void MainWindow::databaseChangedSlot() {
+    tasks = db->queryAllTask();
+    qDebug()<<"databaseChangedSlot:"<<tasks.size();
+    updateUserInfoCard();
     updateDocker();
 
+    pManage->updateCards(tasks);
 }

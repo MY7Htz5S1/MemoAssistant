@@ -11,18 +11,17 @@
 #include <QWidget>
 #include "ElaLineEdit.h"
 #include "ElaCheckBox.h"
-#include "DataTimePicker.h"
+#include "DateTimePicker.h"
 #include "ElaText.h"
-
 
 class ManageTaskWidget:public QWidget {
     Q_OBJECT
     QGroupBox *newTaskGroup{};
     ElaLineEdit *taskNameEdit{};
     ElaCheckBox *isContinuousCheck{};
-    DataTimePicker *startDataTimePicker{};
+    DateTimePicker *startDateTimePicker{};
     ElaText *stopLabel{};
-    DataTimePicker *stopDataTimePicker{};
+    DateTimePicker *stopDateTimePicker{};
     ElaComboBox *priorityCombo{};
     ElaLineEdit *tagsEdit{};
     ElaPushButton *saveButton{};
@@ -45,9 +44,8 @@ private:
     void createNewTaskForm();
     void clearForm();
     bool validateInput();
+
+    bool isAddMode = true;
 };
-
-
-
 
 #endif //MANAGETASKWIDGET_H

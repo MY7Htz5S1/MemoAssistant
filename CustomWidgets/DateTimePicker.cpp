@@ -2,11 +2,11 @@
 // Created by Keranol on 25-5-29.
 //
 
-#include "DataTimePicker.h"
+#include "DateTimePicker.h"
 
 #include <ElaText.h>
 
-DataTimePicker::DataTimePicker(QWidget *parent):QGroupBox(parent) {
+DateTimePicker::DateTimePicker(QWidget *parent):QGroupBox(parent) {
     layout = new QGridLayout(this);
     layout->setSpacing(5);
     layout->setContentsMargins(5, 5, 5, 5);
@@ -54,13 +54,13 @@ DataTimePicker::DataTimePicker(QWidget *parent):QGroupBox(parent) {
     setLayout(layout);
 }
 
-QDateTime DataTimePicker::dateTime() const {
+QDateTime DateTimePicker::dateTime() const {
     QDate date = elaCalendarPicker->getSelectedDate();
-    QTime time(hourRoller->getCurrentIndex(),minRoller->getCurrentIndex(),secRoller->getCurrentIndex());
+    QTime time(hourRoller->getCurrentData().toInt(),minRoller->getCurrentData().toInt(),secRoller->getCurrentData().toInt());
     return {date,time};
 }
 
-void DataTimePicker::setDateTime(const QDateTime& dateTime) {
+void DateTimePicker::setDateTime(const QDateTime& dateTime) {
     elaCalendarPicker->setSelectedDate(dateTime.date());
     hourRoller->setCurrentIndex(dateTime.time().hour());
     minRoller->setCurrentIndex(dateTime.time().minute());

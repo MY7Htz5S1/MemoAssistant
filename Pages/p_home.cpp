@@ -1,6 +1,7 @@
 #include "p_home.h"
 #include "../mainwindow.h"
 #include <QDateTime>
+#include "../TaskManageEventBus.h"
 
 P_Home::P_Home(QWidget* parent):
     ElaScrollPage(parent) {
@@ -44,18 +45,18 @@ void P_Home::handleTaskSaved(const Task &newTask) const {
     }
 
     // 保存到数据库
-    Database* db = mainWindow->getDatabase();
-    if (db && db->insertTask(newTask)) {
+    // Database* db = mainWindow->getDatabase();
+    bool ok;
+    emit tManage->TaskAdded(newTask, ok);
+    if (ok) {
         // 更新任务列表和Docker
-        mainWindow->initDB(mainWindow->getCurrentDatabaseName());
-
+        //mainWindow->initDB(mainWindow->getCurrentDatabaseName());
         ElaMessageBar::success(
             ElaMessageBarType::TopRight,
             "保存成功",
             "备忘录已成功创建",
             2000
             );
-        emit databaseChanged();
     } else {
         ElaMessageBar::error(
             ElaMessageBarType::TopRight,
