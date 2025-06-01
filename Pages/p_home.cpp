@@ -33,19 +33,6 @@ void P_Home::createNewPage() {
 }
 
 void P_Home::handleTaskSaved(const Task &newTask) const {
-    // 检查数据库是否可用
-    if (!mainWindow || !mainWindow->getDatabase()) {
-        ElaMessageBar::error(
-            ElaMessageBarType::TopRight,
-            "数据库错误",
-            "无法连接到数据库，请重试",
-            2000
-            );
-        return;
-    }
-
-    // 保存到数据库
-    // Database* db = mainWindow->getDatabase();
     bool ok;
     emit tManage->TaskAdded(newTask, ok);
     if (ok) {
