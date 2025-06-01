@@ -10,6 +10,8 @@
 
 #include <utility>
 
+#include "../TaskManageEventBus.h"
+
 TaskCard::TaskCard(const Task& tsk, QWidget *parent):
     QGroupBox(parent),
     task(tsk) {
@@ -92,6 +94,7 @@ void TaskCard::showCard() {
 
     layout->setColumnStretch(2,5);
     connect(changeButton,&ElaPushButton::clicked,this,&TaskCard::changeButtonClicked);
+    connect(deleteButton,&ElaPushButton::clicked,this,&TaskCard::deleteButtonClicked);
 }
 
 
@@ -105,15 +108,29 @@ void TaskCard::changeButtonClicked() {
     auto *changeWindowLayout = new QHBoxLayout(changeWindow);
     taskWidget = new ManageTaskWidget(task,changeWindow);
     changeWindowLayout->addWidget(taskWidget);
-
-    //connect(taskWidget,&ManageTaskWidget::taskSaved,this,&TaskCard::taskChanged);
+    connect(taskWidget,&ManageTaskWidget::taskSaved,this,[=](Task t) {
+        changeWindow->close();
+        bool ok;
+        emit tManage->TaskChanged(std::move(t),ok);
+        if(ok) {
+            ElaMessageBar::success(ElaMessageBarType::TopRight,"修改成功","",3000);
+        }else {
+            ElaMessageBar::error(ElaMessageBarType::TopRight,"修改失败","",3000);
+        }
+    });
     changeWindow->show();
 }
 
-void TaskCard::taskChanged(Task tsk) {
-    changeWindow->close();
-
+void TaskCard::deleteButtonClicked() {
+    bool ok;
+    emit tManage->TaskDeleted(task,ok);
+    if(ok) {
+        ElaMessageBar::success(ElaMessageBarType::TopRight,"删除成功","",3000);
+    }else {
+        ElaMessageBar::error(ElaMessageBarType::TopRight,"删除失败","",3000);
+    }
 }
+
 
 
 

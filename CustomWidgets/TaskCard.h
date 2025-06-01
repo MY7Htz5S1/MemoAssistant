@@ -46,8 +46,6 @@ public:
     void taskChanged(Task tsk);
     void taskChangeCancelled();
 
-signals:
-    void taskChanged();
 };
 
 #endif //TASKSCARD_H
