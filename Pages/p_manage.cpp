@@ -26,7 +26,7 @@ P_Manage::P_Manage(TaskList& tskList, QWidget* parent):
     description->setFixedHeight(25);
     textAndButtonLayout->addWidget(description);
     textAndButtonLayout->addStretch();
-    
+
     addButton = new ElaIconButton(ElaIconType::CirclePlus,20,20,20,this);
     connect(addButton,&ElaIconButton::clicked,this,&P_Manage::addNewTask);
     textAndButtonLayout->addWidget(addButton);
@@ -52,11 +52,15 @@ void P_Manage::updateCards(TaskList& tasks) {
         cardLayout->removeItem(item);
         delete item->widget();
     }
-    update();
     for(auto &p:tasks) {
         auto *task = new TaskCard(p,widget);
         cardLayout->addWidget(task);
         qDebug()<<"addCard:"<<p.taskName;
+    }
+    if(tasks.size() == 0) {
+        auto *text = new ElaPushButton("今天没有事项~,点击新建事项", cardGroup);
+        connect(text,&ElaPushButton::clicked,this,&P_Manage::addNewTask);
+        cardLayout->addWidget(text);
     }
     update();
 }

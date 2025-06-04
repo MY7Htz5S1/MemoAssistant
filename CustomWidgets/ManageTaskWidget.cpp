@@ -151,8 +151,9 @@ void ManageTaskWidget::onSaveButtonClicked() {
 
     // 处理标签
     QString tagsText = tagsEdit->text().trimmed();
+    static auto sep = QRegularExpression("[,，]");
     if (!tagsText.isEmpty()) {
-        QStringList tagList = tagsText.split(",", Qt::SkipEmptyParts);
+        QStringList tagList = tagsText.split(sep, Qt::SkipEmptyParts);
         for (const QString& tag : tagList) {
             newTask.tags.push_back(tag.trimmed());
         }

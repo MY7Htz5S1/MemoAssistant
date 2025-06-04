@@ -70,10 +70,16 @@ void TaskCard::showCard() {
         tags = new ElaFlowLayout();
         for(auto& t:task.tags) {
             auto *tag = new QPushButton("#"+t,this);
-            tag->setFixedSize(10,10);
-            tag->setStyleSheet("border-radius: 5px; "
-                           "background-color: rgba(224, 224, 224, 150); "  // 半透明背景
-                           "padding: 10px;");
+            //connect(tag,&QPushButton::clicked,this,[=](){qDebug()<<tag->text();});
+            tag->setFixedSize(50,30);
+            uint hash = qHash(tag->text());
+            QColor color = baseColors[hash%baseColors.size()];
+            tag->setStyleSheet(QString("border-radius: 15px; "
+                           "background-color: rgba(%1, %2, %3, %4); ")
+                           .arg(color.red())
+                           .arg(color.green())
+                           .arg(color.blue())
+                           .arg(color.alpha()));  // 半透明背景
             tags->addWidget(tag);
         }
         layout->addLayout(tags,row,0,1,0, Qt::AlignCenter);
