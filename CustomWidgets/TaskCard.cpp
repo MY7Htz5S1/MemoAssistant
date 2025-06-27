@@ -117,6 +117,7 @@ void TaskCard::changeButtonClicked() {
         }else {
             ElaMessageBar::error(ElaMessageBarType::TopRight,"修改失败","",3000);
         }
+        this->close();
     });
     changeWindow->show();
 }
