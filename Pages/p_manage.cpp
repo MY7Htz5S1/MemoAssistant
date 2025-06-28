@@ -55,7 +55,6 @@ void P_Manage::updateCards(TaskList& tasks) {
     for(auto &p:tasks) {
         auto *task = new TaskCard(p,widget);
         cardLayout->addWidget(task);
-        qDebug()<<"addCard:"<<p.taskName;
     }
     if(tasks.size() == 0) {
         auto *text = new ElaPushButton("今天没有事项~,点击新建事项", cardGroup);

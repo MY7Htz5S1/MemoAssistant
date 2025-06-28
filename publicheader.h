@@ -14,6 +14,7 @@ struct Task{
     QDateTime stopTime;
     int priority;
     QVector<QString> tags;
+    bool finished = false;
 
     explicit operator bool() const {
         return taskID != -1;

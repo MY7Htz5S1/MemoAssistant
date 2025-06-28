@@ -66,15 +66,16 @@ void TaskCard::showCard() {
         row++;
     }
     if(!task.tags.empty()) {
-        qDebug()<<task.tags;
         tags = new ElaFlowLayout();
         for(auto& t:task.tags) {
             auto *tag = new QPushButton("#"+t,this);
             //connect(tag,&QPushButton::clicked,this,[=](){qDebug()<<tag->text();});
-            tag->setFixedSize(50,30);
+            tag->setFixedHeight(30);
+            tag->setMinimumWidth(50);
             uint hash = qHash(tag->text());
             QColor color = baseColors[hash%baseColors.size()];
             tag->setStyleSheet(QString("border-radius: 15px; "
+                            "padding: 5px;"
                            "background-color: rgba(%1, %2, %3, %4); ")
                            .arg(color.red())
                            .arg(color.green())
@@ -114,10 +115,10 @@ void TaskCard::changeButtonClicked() {
     auto *changeWindowLayout = new QHBoxLayout(changeWindow);
     taskWidget = new ManageTaskWidget(task,changeWindow);
     changeWindowLayout->addWidget(taskWidget);
-    connect(taskWidget,&ManageTaskWidget::taskSaved,this,[=](Task t) {
+    connect(taskWidget,&ManageTaskWidget::taskSaved,this,[=](const Task& t) {
         changeWindow->close();
-        bool ok;
-        emit tManage->TaskChanged(std::move(t),ok);
+        bool ok = false;
+        emit tManage->TaskChanged(t,ok);
         if(ok) {
             ElaMessageBar::success(ElaMessageBarType::TopRight,"修改成功","",3000);
         }else {
