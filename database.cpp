@@ -37,7 +37,8 @@ bool Database::initDatabase(){
                       "StartTime TEXT NOT NULL,"+
                       "StopTime TEXT DEFAULT NULL,"+
                       "Priority INTEGER NOT NULL DEFAULT 1,"+
-                      "Tags TEXT DEFAULT ''"+
+                      "Tags TEXT DEFAULT '',"+
+                      "Finished BOOL DEFAULT 0"+
                       ");";
 
     if(!db.open()){
@@ -86,27 +87,16 @@ bool Database::insertTask(const Task& t, bool& ok){
     QString tags = QString::fromUtf8(jdcm.toJson(QJsonDocument::Compact));
 
     QSqlQuery query(db);
-
-    if(t.isContinuous){
-        query.prepare("INSERT INTO "+ tbName +
-                      " (TaskName,IsContinuous,StartTime,StopTime,Priority,Tags) "+
-                      "VALUES (?,?,?,?,?,?)");
-        query.addBindValue(t.taskName);
-        query.addBindValue(t.isContinuous ? 1 : 0);
-        query.addBindValue(t.startTime.toString("yyyy-MM-dd hh:mm:ss"));
-        query.addBindValue(t.stopTime.toString("yyyy-MM-dd hh:mm:ss"));
-        query.addBindValue(t.priority);
-        query.addBindValue(tags);
-    } else {
-        query.prepare("INSERT INTO "+ tbName +
-                      " (TaskName,IsContinuous,StartTime,Priority,Tags) "+
-                      "VALUES (?,?,?,?,?)");
-        query.addBindValue(t.taskName);
-        query.addBindValue(t.isContinuous ? 1 : 0);
-        query.addBindValue(t.startTime.toString("yyyy-MM-dd hh:mm:ss"));
-        query.addBindValue(t.priority);
-        query.addBindValue(tags);
-    }
+    query.prepare("INSERT INTO "+ tbName +
+                      " (TaskName,IsContinuous,StartTime,StopTime,Priority,Finished,Tags) "+
+                      "VALUES (?,?,?,?,?,?,?)");
+    query.addBindValue(t.taskName);
+    query.addBindValue(t.isContinuous ? 1 : 0);
+    query.addBindValue(t.startTime.toString("yyyy-MM-dd hh:mm:ss"));
+    query.addBindValue(t.stopTime.toString("yyyy-MM-dd hh:mm:ss"));
+    query.addBindValue(t.priority);
+    query.addBindValue(t.finished);
+    query.addBindValue(tags);
 
     bool isok = query.exec();
     if(!isok) {
@@ -130,7 +120,7 @@ QVector<Task> Database::queryAllTask(){
     }
 
     QSqlQuery query(db);
-    query.prepare("SELECT TaskID,TaskName,IsContinuous,StartTime,StopTime,Priority,Tags FROM " + tbName);
+    query.prepare("SELECT TaskID,TaskName,IsContinuous,StartTime,StopTime,Priority,Tags,Finished FROM " + tbName);
 
     if(!query.exec()){
         qDebug()<<"Query failed!" << query.lastError();
@@ -165,6 +155,7 @@ QVector<Task> Database::queryAllTask(){
 
         task.priority = query.value(5).toInt();
         task.tags = tags;
+        task.finished = query.value(7).toBool();
 
         tasks.push_back(task);
     }
@@ -192,7 +183,7 @@ bool Database::updateTask(const Task& t,bool &ok) {
 
     if (t.isContinuous) {
         query.prepare("UPDATE " + tbName +
-                      " SET TaskName = ?, IsContinuous = ?, StartTime = ?, StopTime = ?, Priority = ?, Tags = ? " +
+                      " SET TaskName = ?, IsContinuous = ?, StartTime = ?, StopTime = ?, Priority = ?, Tags = ? , Finished = ? " +
                       "WHERE TaskID = ?");
         query.addBindValue(t.taskName);
         query.addBindValue(t.isContinuous ? 1 : 0);
@@ -200,16 +191,18 @@ bool Database::updateTask(const Task& t,bool &ok) {
         query.addBindValue(t.stopTime.toString("yyyy-MM-dd hh:mm:ss"));
         query.addBindValue(t.priority);
         query.addBindValue(tags);
+        query.addBindValue(t.finished? 1 : 0);
         query.addBindValue(t.taskID);
     } else {
         query.prepare("UPDATE " + tbName +
-                      " SET TaskName = ?, IsContinuous = ?, StartTime = ?, Priority = ?, Tags = ? " +
+                      " SET TaskName = ?, IsContinuous = ?, StartTime = ?, Priority = ?, Tags = ? , Finished = ? " +
                       "WHERE TaskID = ?");
         query.addBindValue(t.taskName);
         query.addBindValue(t.isContinuous ? 1 : 0);
         query.addBindValue(t.startTime.toString("yyyy-MM-dd hh:mm:ss"));
         query.addBindValue(t.priority);
         query.addBindValue(tags);
+        query.addBindValue(t.finished? 1 : 0);
         query.addBindValue(t.taskID);
     }
 
@@ -242,6 +235,30 @@ bool Database::deleteTask(const Task& t, bool &ok) {
     bool isok = query.exec();
     if (!isok) {
         qDebug() << "Delete failed!" << query.lastError();
+        db.close();
+        ok = false;
+        return false;
+    }
+
+    db.close();
+    emit tManage->DatabaseChanged();
+    ok = true;
+    return true;
+}
+
+bool Database::taskFinished(const Task &t, bool &ok) {
+    if (!db.open()) {
+        qDebug() << "database open failed!" << db.lastError();
+        ok = false;
+        return false;
+    }
+    QSqlQuery query(db);
+    query.prepare("UPDATE FROM "+tbName + " WHERE TaskID = ? SET Finished = 1");
+    query.addBindValue(t.taskID);
+
+    bool isOk = query.exec();
+    if(!isOk) {
+        qDebug() << "Update Finish failed!" << query.lastError();
         db.close();
         ok = false;
         return false;

@@ -1,10 +1,14 @@
 #ifndef P_TIMELINE_H
 #define P_TIMELINE_H
 
+#include <QVBoxLayout>
+
 #include "ElaScrollPage.h"
+
 #include "../publicheader.h"
 #include <ElaFlowLayout.h>
 #include <ElaWidget.h>
+
 
 class P_Timeline : public ElaScrollPage
 {

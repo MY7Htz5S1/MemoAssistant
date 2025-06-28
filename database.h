@@ -10,7 +10,7 @@ class Database : public QObject
 private:
     QSqlDatabase db;
     QString dbName;
-    QString tbName = "Tasks";  // 修复拼写错误：tbNmae -> tbName
+    QString tbName = "Tasks";
 
 public:
     Database(QString dbname);
@@ -24,7 +24,7 @@ public:
     bool deleteTask(const Task& t, bool& ok);
     QVector<Task> queryTasksByDate(const QDate& date);
     bool isConnected() const { return db.isOpen(); }
-
+    bool taskFinished(const Task& t, bool& ok);
 };
 
 #endif // DATABASE_H

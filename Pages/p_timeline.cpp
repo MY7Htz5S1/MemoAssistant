@@ -2,6 +2,7 @@
 #include "ElaMessageBar.h"
 #include "../CustomWidgets/CalendarView.h"
 
+
 P_Timeline::P_Timeline(QVector<Task> &tasks, QWidget* parent):
     ElaScrollPage(parent),
     task_list(tasks),
@@ -40,3 +41,4 @@ void P_Timeline::setView(QString type) {
 
 
 //void CalendarChanged()
+
