@@ -267,4 +267,4 @@ bool Database::taskFinished(const Task &t, bool &ok) {
     emit tManage->DatabaseChanged();
     ok = true;
     return true;
-
+}
