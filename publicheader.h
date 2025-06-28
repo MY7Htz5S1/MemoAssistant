@@ -76,17 +76,17 @@ struct sortByTags{
 
 inline void sortTasks(QVector<Task> &tsk,SortType st){
     switch(st){
-    case ByDate:
-        std::sort(tsk.begin(),tsk.end(), sortByDate());
+        case ByDate:
+            std::sort(tsk.begin(),tsk.end(), sortByDate());
         break;
-    case ByPriority:
-        std::sort(tsk.begin(),tsk.end(), sortByPriority());
+        case ByPriority:
+            std::sort(tsk.begin(),tsk.end(), sortByPriority());
         break;
-    case ByTags:
-        std::sort(tsk.begin(),tsk.end(), sortByTags());
+        case ByTags:
+            std::sort(tsk.begin(),tsk.end(), sortByTags());
         break;
-    default:
-        throw "SortType Error!";
+        default:
+            throw "SortType Error!";
     }
 
 }

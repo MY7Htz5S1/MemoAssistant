@@ -138,7 +138,3 @@ void TaskCard::deleteButtonClicked() {
         ElaMessageBar::error(ElaMessageBarType::TopRight,"删除失败","",3000);
     }
 }
-
-
-
-

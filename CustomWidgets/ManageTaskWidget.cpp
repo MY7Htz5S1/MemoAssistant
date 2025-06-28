@@ -213,6 +213,5 @@ bool ManageTaskWidget::validateInput() {
             return false;
         }
     }
-
     return true;
 }
