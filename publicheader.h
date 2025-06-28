@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QVector>
 #include <algorithm>
+#include <QColor>
 
 struct Task{
     int taskID = -1;
@@ -13,10 +14,21 @@ struct Task{
     QDateTime stopTime;
     int priority;
     QVector<QString> tags;
+    bool finished = false;
 
     explicit operator bool() const {
         return taskID != -1;
     }
+};
+
+inline QList<QColor> baseColors = {
+    QColor(239, 154, 154), // 深粉红
+    QColor(255, 183, 77),  // 深橙色
+    QColor(255, 213, 79),  // 深黄色
+    QColor(129, 199, 132), // 深绿色
+    QColor(129, 212, 250), // 深蓝色
+    QColor(179, 157, 219), // 深紫色
+    QColor(244, 143, 177)  // 深粉色
 };
 
 struct User{

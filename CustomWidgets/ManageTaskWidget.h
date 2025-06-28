@@ -36,7 +36,7 @@ signals:
     void taskSaved(Task newTask);
     void taskChangeCancelled();
 private slots:
-    void onContinuousCheckChanged(int state);
+    void onContinuousCheckChanged(int state) const;
     void onSaveButtonClicked();
     void onClearButtonClicked();
 
