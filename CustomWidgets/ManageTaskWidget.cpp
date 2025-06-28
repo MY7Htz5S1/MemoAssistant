@@ -15,7 +15,7 @@ ManageTaskWidget::ManageTaskWidget(QWidget* parent):
     createNewTaskForm();
 }
 
-ManageTaskWidget::ManageTaskWidget(Task& tsk,QWidget* parent):
+ManageTaskWidget::ManageTaskWidget(const Task& tsk,QWidget* parent):
     QWidget(parent),
     task(tsk){
     isAddMode = false;

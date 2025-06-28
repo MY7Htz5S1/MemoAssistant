@@ -122,7 +122,7 @@ void MainWindow::initDB(QString dbName){
 void MainWindow::initContent(){
     pHome = new P_Home(this);
     pManage = new P_Manage(tasks,this);
-    pTimeline = new P_Timeline(this);
+    pTimeline = new P_Timeline(tasks, this);
     pReport = new P_Report(this);  // 初始化报告页面
     pSetting = new P_Setting(this);
     QString settingKey;
