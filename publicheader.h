@@ -4,6 +4,7 @@
 #include <QDateTime>
 #include <QVector>
 #include <algorithm>
+#include <QColor>
 
 struct Task{
     int taskID = -1;
@@ -13,10 +14,21 @@ struct Task{
     QDateTime stopTime;
     int priority;
     QVector<QString> tags;
+    bool finished = false;
 
     explicit operator bool() const {
         return taskID != -1;
     }
+};
+
+inline QList<QColor> baseColors = {
+    QColor(239, 154, 154), // 深粉红
+    QColor(255, 183, 77),  // 深橙色
+    QColor(255, 213, 79),  // 深黄色
+    QColor(129, 199, 132), // 深绿色
+    QColor(129, 212, 250), // 深蓝色
+    QColor(179, 157, 219), // 深紫色
+    QColor(244, 143, 177)  // 深粉色
 };
 
 struct User{
@@ -64,17 +76,17 @@ struct sortByTags{
 
 inline void sortTasks(QVector<Task> &tsk,SortType st){
     switch(st){
-    case ByDate:
-        std::sort(tsk.begin(),tsk.end(), sortByDate());
+        case ByDate:
+            std::sort(tsk.begin(),tsk.end(), sortByDate());
         break;
-    case ByPriority:
-        std::sort(tsk.begin(),tsk.end(), sortByPriority());
+        case ByPriority:
+            std::sort(tsk.begin(),tsk.end(), sortByPriority());
         break;
-    case ByTags:
-        std::sort(tsk.begin(),tsk.end(), sortByTags());
+        case ByTags:
+            std::sort(tsk.begin(),tsk.end(), sortByTags());
         break;
-    default:
-        throw "SortType Error!";
+        default:
+            throw "SortType Error!";
     }
 
 }

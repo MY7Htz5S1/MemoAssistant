@@ -66,14 +66,22 @@ void TaskCard::showCard() {
         row++;
     }
     if(!task.tags.empty()) {
-        qDebug()<<task.tags;
+
         tags = new ElaFlowLayout();
         for(auto& t:task.tags) {
             auto *tag = new QPushButton("#"+t,this);
-            tag->setFixedSize(10,10);
-            tag->setStyleSheet("border-radius: 5px; "
-                           "background-color: rgba(224, 224, 224, 150); "  // 半透明背景
-                           "padding: 10px;");
+            //connect(tag,&QPushButton::clicked,this,[=](){qDebug()<<tag->text();});
+            tag->setFixedHeight(30);
+            tag->setMinimumWidth(50);
+            uint hash = qHash(tag->text());
+            QColor color = baseColors[hash%baseColors.size()];
+            tag->setStyleSheet(QString("border-radius: 15px; "
+                            "padding: 5px;"
+                           "background-color: rgba(%1, %2, %3, %4); ")
+                           .arg(color.red())
+                           .arg(color.green())
+                           .arg(color.blue())
+                           .arg(color.alpha()));  // 半透明背景
             tags->addWidget(tag);
         }
         layout->addLayout(tags,row,0,1,0, Qt::AlignCenter);
@@ -108,10 +116,10 @@ void TaskCard::changeButtonClicked() {
     auto *changeWindowLayout = new QHBoxLayout(changeWindow);
     taskWidget = new ManageTaskWidget(task,changeWindow);
     changeWindowLayout->addWidget(taskWidget);
-    connect(taskWidget,&ManageTaskWidget::taskSaved,this,[=](Task t) {
+    connect(taskWidget,&ManageTaskWidget::taskSaved,this,[=](const Task& t) {
         changeWindow->close();
-        bool ok;
-        emit tManage->TaskChanged(std::move(t),ok);
+        bool ok = false;
+        emit tManage->TaskChanged(t,ok);
         if(ok) {
             ElaMessageBar::success(ElaMessageBarType::TopRight,"修改成功","",3000);
         }else {
@@ -130,7 +138,3 @@ void TaskCard::deleteButtonClicked() {
         ElaMessageBar::error(ElaMessageBarType::TopRight,"删除失败","",3000);
     }
 }
-
-
-
-
