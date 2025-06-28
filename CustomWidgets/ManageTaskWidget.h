@@ -30,13 +30,14 @@ class ManageTaskWidget:public QWidget {
     Task task{};
 public:
     explicit ManageTaskWidget(QWidget *parent = nullptr);
-    explicit ManageTaskWidget(Task &tsk, QWidget *parent = nullptr);
+    explicit ManageTaskWidget(const Task &tsk, QWidget *parent = nullptr);
     void readTask(Task& tsk);
     signals:
         void taskSaved(Task newTask);
     void taskChangeCancelled();
-    private slots:
-        void onContinuousCheckChanged(int state) const;
+
+private slots:
+    void onContinuousCheckChanged(int state) const;
     void onSaveButtonClicked();
     void onClearButtonClicked();
 

@@ -12,7 +12,7 @@ class P_Docker : public QWidget
 private:
     QVector<Task>& tasks;
     ElaPushButton *text;
-    ElaFlowLayout *flowLayout;
+    ElaFlowLayout *flowLayout{};
 public:
     Q_INVOKABLE P_Docker(QVector<Task>& tsk, QWidget *parent = nullptr);
     void showTasks(SortType);

@@ -66,7 +66,6 @@ void TaskCard::showCard() {
         row++;
     }
     if(!task.tags.empty()) {
-
         tags = new ElaFlowLayout();
         for(auto& t:task.tags) {
             auto *tag = new QPushButton("#"+t,this);
@@ -125,6 +124,7 @@ void TaskCard::changeButtonClicked() {
         }else {
             ElaMessageBar::error(ElaMessageBarType::TopRight,"修改失败","",3000);
         }
+        this->close();
     });
     changeWindow->show();
 }

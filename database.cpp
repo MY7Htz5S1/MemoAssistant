@@ -97,18 +97,6 @@ bool Database::insertTask(const Task& t, bool& ok){
     query.addBindValue(t.priority);
     query.addBindValue(t.finished);
     query.addBindValue(tags);
-
-
-
-
-
-
-
-
-
-
-
-
     bool isok = query.exec();
     if(!isok) {
         qDebug()<<"Insert failed!" << query.lastError();
@@ -279,4 +267,4 @@ bool Database::taskFinished(const Task &t, bool &ok) {
     emit tManage->DatabaseChanged();
     ok = true;
     return true;
-}
+
