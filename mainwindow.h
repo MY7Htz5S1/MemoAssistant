@@ -1,10 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "Pages/p_about.h"
-#include "Pages/p_help.h"
 #include "Pages/p_manage.h"
-#include "Pages/p_setting.h"
 #include "Pages/p_timeline.h"
 #include "Pages/p_report.h"
 #include "include/ElaWindow.h"
@@ -34,9 +31,6 @@ private:
     P_Manage *pManage{nullptr};
     P_Timeline *pTimeline{nullptr};
     P_Report *pReport{nullptr};
-    P_Setting *pSetting{nullptr};
-    P_Help *pHelp{nullptr};
-    P_About *pAbout{nullptr};
 
     //Docker
     ElaDockWidget *rDocker{nullptr};

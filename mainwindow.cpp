@@ -6,7 +6,6 @@
 #include <QtSql/QSqlError>
 #include "ElaMessageBar.h"
 #include "logindialog.h"
-#include "Pages/p_docker.h"
 #include "ElaMenu.h"
 #include <QMessageBox>
 
@@ -150,22 +149,12 @@ void MainWindow::initContent(){
     pHome = new P_Home(this);
     pManage = new P_Manage(tasks,this);
     pTimeline = new P_Timeline(tasks, this);
-    pReport = new P_Report(this);  // 初始化报告页面
-    pSetting = new P_Setting(this);
-    QString settingKey;
-    pHelp = new P_Help(this);
-    QString helpKey;
-    pAbout = new P_About(this);
-    QString aboutKey;
+    pReport = new P_Report(this);
 
     this->addPageNode("主页", pHome, ElaIconType::House);
     this->addPageNode("事项管理", pManage, ElaIconType::Book);
     this->addPageNode("时间视图",pTimeline, ElaIconType::Timeline);
-    this->addPageNode("近期总结",pReport, ElaIconType::Newspaper);  // 添加报告页面到导航
-
-    //this->addFooterNode("关于",pAbout,aboutKey,0,ElaIconType::User);
-    //this->addFooterNode("帮助",pHelp,helpKey,0,ElaIconType::BlockQuestion);
-    //this->addFooterNode("设置",pSetting,settingKey,0,ElaIconType::GearComplex);
+    this->addPageNode("近期总结",pReport, ElaIconType::Newspaper);
 
     // 初始化报告页面数据
     if(pReport) {
