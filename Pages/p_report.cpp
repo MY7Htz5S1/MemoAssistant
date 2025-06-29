@@ -97,6 +97,7 @@ P_Report::P_Report(QWidget* parent)
     , m_currentTimeRange(ReportTimeRange::Monthly)
     , m_refreshTimer(nullptr)
 {
+    setWindowTitle("近期总结");
     initUI();
 
     // 设置自动刷新定时器（每5分钟刷新一次）
@@ -482,6 +483,9 @@ ReportStatistics P_Report::calculateStatistics(const QVector<Task>& filteredTask
     ReportStatistics stats;
     stats.totalTasks = filteredTasks.size();
 
+    int completedContinuousTasks = 0; // 记录已完成的持续任务数，用于计算平均时长
+    double continuousTasksTime = 0.0; // 记录持续任务的总时长
+
     for (const Task& task : filteredTasks) {
         // 计算完成任务数（根据finished属性判断）
         if (task.finished) {
@@ -491,9 +495,16 @@ ReportStatistics P_Report::calculateStatistics(const QVector<Task>& filteredTask
         // 计算连续任务数
         if (task.isContinuous) {
             stats.continuousTasks++;
+
+            // 如果是已完成的持续任务，统计到平均时长计算中
+            if (task.finished) {
+                completedContinuousTasks++;
+                double duration = calculateTaskDuration(task);
+                continuousTasksTime += duration;
+            }
         }
 
-        // 计算总时长
+        // 计算总时长（包括非持续任务的0时长）
         double duration = calculateTaskDuration(task);
         stats.totalHours += duration;
 
@@ -512,15 +523,21 @@ ReportStatistics P_Report::calculateStatistics(const QVector<Task>& filteredTask
         stats.dailyStats[taskDate]++;
     }
 
-    // 计算平均任务时长（只计算已完成的任务）
-    stats.averageTaskDuration = stats.completedTasks > 0 ?
-                                    stats.totalHours / stats.completedTasks : 0;
+    // 计算平均任务时长（只计算已完成的持续任务）
+    stats.averageTaskDuration = completedContinuousTasks > 0 ?
+                                    continuousTasksTime / completedContinuousTasks : 0;
 
     return stats;
 }
 
 double P_Report::calculateTaskDuration(const Task& task)
 {
+    // 如果是非持续任务，直接返回0
+    if (!task.isContinuous) {
+        return 0.0;
+    }
+
+    // 以下逻辑只对持续任务生效
     // 如果任务已完成且有结束时间，使用实际时长
     if (task.finished && task.stopTime.isValid()) {
         return task.startTime.secsTo(task.stopTime) / 3600.0;
@@ -554,7 +571,7 @@ QString P_Report::generateTextSummary(const ReportStatistics& stats)
     // 时间分析
     if (stats.totalHours > 0) {
         summary += QString("<p><b style='color: #4fc3f7;'>⏱️ 时间分析</b><br>");
-        summary += QString("总计投入时间 <b style='color: #81c784;'>%1</b>，平均每个任务耗时 <b style='color: #81c784;'>%2</b>。")
+        summary += QString("持续任务总计投入时间 <b style='color: #81c784;'>%1</b>，平均每个持续任务耗时 <b style='color: #81c784;'>%2</b>。")
                        .arg(formatDuration(stats.totalHours))
                        .arg(formatDuration(stats.averageTaskDuration));
 
@@ -562,6 +579,12 @@ QString P_Report::generateTextSummary(const ReportStatistics& stats)
             summary += QString("其中连续性任务 <b style='color: #81c784;'>%1</b> 个，占总任务的 <b style='color: #ffb74d;'>%2%</b>。")
                            .arg(stats.continuousTasks)
                            .arg(QString::number((double)stats.continuousTasks / stats.totalTasks * 100, 'f', 1));
+        }
+
+        // 添加说明
+        int singleTasks = stats.totalTasks - stats.continuousTasks;
+        if (singleTasks > 0) {
+            summary += QString("单次任务 <b style='color: #81c784;'>%1</b> 个，不计入时长统计。").arg(singleTasks);
         }
         summary += "</p>";
     }
