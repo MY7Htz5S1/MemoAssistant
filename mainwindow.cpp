@@ -136,7 +136,7 @@ void MainWindow::initDB(QString dbName){
 
     if(pTimeline) {
         qDebug() << "MainWindow: About to update pTimeline, pTimeline is" << (pTimeline ? "valid" : "null");
-        //pTimeline->updateView();
+        pTimeline->updateTimeline(tasks);
         qDebug()<<"Updated pTimeline with" << tasks.size() << "tasks";
     } else {
         qDebug() << "MainWindow: pTimeline is null, cannot update";
@@ -471,7 +471,7 @@ void MainWindow::databaseChangedSlot() {
 
     // 更新时间视图页面
     if(pTimeline) {
-        //pTimeline->updateView();
+        pTimeline->updateTimeline(tasks);
         qDebug()<<"Updated pTimeline in databaseChangedSlot with" << tasks.size() << "tasks";
     }
 }

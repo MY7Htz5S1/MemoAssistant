@@ -9,7 +9,6 @@
 #include "ElaPushButton.h"
 #include "ElaIconButton.h"
 #include "TaskCard.h"
-#include "../TaskManageEventBus.h"
 
 DayCell::DayCell(const QDate& date, QWidget *parent):
     QFrame(parent) {
@@ -30,7 +29,7 @@ DayCell::DayCell(const QDate& date, QWidget *parent):
 
 void DayCell::setTasks(const QVector<Task>& tasks) {
     for(const Task& t : tasks) {
-        QString taskText = QString(t.finished ? "✅" : "") + t.taskName;
+        QString taskText = QString(t.finished ? "✅ " : "〇 ") + t.taskName;
         auto *taskButton = new ElaPushButton(taskText, this);
         QString color = t.finished ? "white" : "grey";
         taskButton->setStyleSheet(QString("font-size: 13px; color: ") + color + QString("; text-align: left;"));
@@ -58,10 +57,6 @@ CalendarView::CalendarView(QVector<Task> &tasks, QWidget *parent):
 
     buildCalendar(QDate::currentDate());
 
-    connect(tManage, &TaskManageEventBus::TaskChanged, this, &CalendarView::taskChanged);
-    connect(tManage, &TaskManageEventBus::TaskAdded, this, &CalendarView::taskChanged);
-    connect(tManage, &TaskManageEventBus::TaskDeleted, this, &CalendarView::taskChanged);
-
     setLayout(mainLayout);
 }
 
@@ -81,6 +76,9 @@ void CalendarView::buildCalendar(const QDate& month) {
 
     auto *prevMonthButton = new ElaIconButton(ElaIconType::AngleLeft);
     auto *nextMonthButton = new ElaIconButton(ElaIconType::AngleRight);
+
+    prevMonthButton->setFixedSize(70, 50);
+    nextMonthButton->setFixedSize(70, 50);
 
     connect(prevMonthButton, &ElaIconButton::clicked, this, &CalendarView::prevMonth);
     connect(nextMonthButton, &ElaIconButton::clicked, this, &CalendarView::nextMonth);
@@ -137,6 +135,8 @@ void CalendarView::buildCalendar(const QDate& month) {
     mainLayout->addLayout(headerLayout);
     mainLayout->addLayout(calendarGrid);
 
+    mainLayout->addSpacing(10);
+
 }
 
 QVector<Task> CalendarView::tasksForDate(const QDate& date) {
@@ -160,7 +160,7 @@ void CalendarView::prevMonth() {
 }
 
 void CalendarView::taskChanged(Task t, bool& ok) {
-    refreshCalendar();
+    //refreshCalendar();
 }
 
 void CalendarView::refreshCalendar() {
@@ -169,7 +169,7 @@ void CalendarView::refreshCalendar() {
 }
 
 QSize CalendarView::sizeHint() const {
-    qDebug() << "calendar size:" << QWidget::sizeHint();
+    //qDebug() << "calendar size:" << QWidget::sizeHint();
     return QWidget::sizeHint();
 }
 
