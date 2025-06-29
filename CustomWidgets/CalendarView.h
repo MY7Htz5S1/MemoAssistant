@@ -29,15 +29,21 @@ public:
 
 private:
     QVector<Task> &task_list;
-    QGridLayout *calendarGrid;
     QVBoxLayout *mainLayout;
+    QHBoxLayout *headerLayout;
+    QGridLayout *calendarGrid;
+
+    QDate current_date;
 
     void buildCalendar(const QDate& month);
     QVector<Task> tasksForDate(const QDate& date); // 获取某天的任务
-    void refreshCalendar(const QDate& month);
+    void refreshCalendar();
+    QSize sizeHint() const override;
 
-signals:
-    void taskChanged();
+private slots:
+    void nextMonth();
+    void prevMonth();
+    void taskChanged(Task t, bool& ok);
 };
 
 #endif // CALENDARVIEW_H

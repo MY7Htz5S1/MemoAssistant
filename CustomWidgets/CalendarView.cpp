@@ -3,30 +3,19 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QVBoxLayout>
+#include <QDebug>
 
-#include "ElaTableView.h"
 #include "ElaText.h"
 #include "ElaPushButton.h"
+#include "ElaIconButton.h"
 #include "TaskCard.h"
 #include "../TaskManageEventBus.h"
-
-void clearLayout(QLayout *layout) {
-    if (!layout) return;
-    QLayoutItem *item;
-    while ((item = layout->takeAt(0)) != nullptr) {
-        if (QWidget *w = item->widget()) {
-            delete w;
-        } else if (QLayout *childLayout = item->layout()) {
-            clearLayout(childLayout); // 只递归，不 delete 子 layout
-        }
-        delete item;
-    }
-}
 
 DayCell::DayCell(const QDate& date, QWidget *parent):
     QFrame(parent) {
     setFrameStyle(QFrame::StyledPanel);
     setMinimumSize(90, 70);  // 可调整
+
     cellLayout = new QVBoxLayout(this);
     cellLayout->setContentsMargins(10, 8, 8, 10);
 
@@ -41,9 +30,10 @@ DayCell::DayCell(const QDate& date, QWidget *parent):
 
 void DayCell::setTasks(const QVector<Task>& tasks) {
     for(const Task& t : tasks) {
-
-        auto *taskButton = new ElaPushButton(t.taskName, this);
-        taskButton->setStyleSheet("font-size: 13px; color: white; text-align: left;");
+        QString taskText = QString(t.finished ? "✅" : "") + t.taskName;
+        auto *taskButton = new ElaPushButton(taskText, this);
+        QString color = t.finished ? "white" : "grey";
+        taskButton->setStyleSheet(QString("font-size: 13px; color: ") + color + QString("; text-align: left;"));
 
         connect(taskButton, &ElaPushButton::clicked, this, [=]() {
             auto* taskDetailWidget = new TaskCard(t);
@@ -58,17 +48,21 @@ void DayCell::setTasks(const QVector<Task>& tasks) {
 
 CalendarView::CalendarView(QVector<Task> &tasks, QWidget *parent):
     QWidget(parent), task_list(tasks) {
-    mainLayout = new QVBoxLayout(this);
 
-    calendarGrid = new QGridLayout();
+    current_date = QDate::currentDate();
+
+    mainLayout = nullptr;
+
+    calendarGrid = nullptr;
+    headerLayout = nullptr;
 
     buildCalendar(QDate::currentDate());
 
-    connect(tManage, &TaskManageEventBus::TaskChanged, this, [=](Task t, bool& ok) {
-        clearLayout(mainLayout);
-        calendarGrid = new QGridLayout();
-        buildCalendar(QDate::currentDate());
-    });
+    connect(tManage, &TaskManageEventBus::TaskChanged, this, &CalendarView::taskChanged);
+    connect(tManage, &TaskManageEventBus::TaskAdded, this, &CalendarView::taskChanged);
+    connect(tManage, &TaskManageEventBus::TaskDeleted, this, &CalendarView::taskChanged);
+
+    setLayout(mainLayout);
 }
 
 void CalendarView::buildCalendar(const QDate& month) {
@@ -78,7 +72,21 @@ void CalendarView::buildCalendar(const QDate& month) {
 
     QString DAY_NAME[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 
-    ElaText *titleLabel = new ElaText(MONTH_NAME[month.month()-1] + ' ' + QString::number(month.year()), this);
+    mainLayout = new QVBoxLayout(this);
+
+    calendarGrid = new QGridLayout();
+    headerLayout = new QHBoxLayout();
+
+    current_date = month;
+
+    auto *prevMonthButton = new ElaIconButton(ElaIconType::AngleLeft);
+    auto *nextMonthButton = new ElaIconButton(ElaIconType::AngleRight);
+
+    connect(prevMonthButton, &ElaIconButton::clicked, this, &CalendarView::prevMonth);
+    connect(nextMonthButton, &ElaIconButton::clicked, this, &CalendarView::nextMonth);
+
+    ElaText *titleLabel = new ElaText(
+        MONTH_NAME[month.month()-1] + ' ' + QString::number(month.year()), this);
     titleLabel->setTextPixelSize(20);
     titleLabel->setAlignment(Qt::AlignCenter);
     QFont font = titleLabel->font();
@@ -86,12 +94,18 @@ void CalendarView::buildCalendar(const QDate& month) {
     font.setBold(true);
     titleLabel->setFont(font);
 
-    mainLayout->addWidget(titleLabel);
+    headerLayout->addWidget(prevMonthButton);
+
+    headerLayout->addStretch();
+    headerLayout->addWidget(titleLabel);
+    headerLayout->addStretch();
+
+    headerLayout->addWidget(nextMonthButton);
 
     int row = 0;
 
     QDate firstDay = QDate(month.year(), month.month(), 1);
-    int startDayOfWeek = firstDay.dayOfWeek();  // 获取是星期几
+    int startDayOfWeek = firstDay.dayOfWeek();
 
     QDate current = firstDay.addDays(-startDayOfWeek + 1);  // 从这个周的周一开始
 
@@ -120,8 +134,9 @@ void CalendarView::buildCalendar(const QDate& month) {
         if(end_generate) break;
     }
 
+    mainLayout->addLayout(headerLayout);
     mainLayout->addLayout(calendarGrid);
-    setLayout(mainLayout);
+
 }
 
 QVector<Task> CalendarView::tasksForDate(const QDate& date) {
@@ -134,11 +149,29 @@ QVector<Task> CalendarView::tasksForDate(const QDate& date) {
     return result;
 }
 
-void CalendarView::refreshCalendar(const QDate& month = QDate::currentDate()) {
-    clearLayout(mainLayout);
-    mainLayout = new QVBoxLayout(this);
-    calendarGrid = new QGridLayout();
-    buildCalendar(month);
+void CalendarView::nextMonth() {
+    current_date = current_date.addMonths(1);
+    refreshCalendar();
 }
+
+void CalendarView::prevMonth() {
+    current_date = current_date.addMonths(-1);
+    refreshCalendar();
+}
+
+void CalendarView::taskChanged(Task t, bool& ok) {
+    refreshCalendar();
+}
+
+void CalendarView::refreshCalendar() {
+    clearLayout(mainLayout);
+    buildCalendar(current_date);
+}
+
+QSize CalendarView::sizeHint() const {
+    qDebug() << "calendar size:" << QWidget::sizeHint();
+    return QWidget::sizeHint();
+}
+
 
 

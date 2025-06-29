@@ -5,6 +5,7 @@
 #include <QVector>
 #include <algorithm>
 #include <QColor>
+#include <QLayout>
 
 struct Task{
     int taskID = -1;
@@ -89,6 +90,20 @@ inline void sortTasks(QVector<Task> &tsk,SortType st){
             throw "SortType Error!";
     }
 
+}
+
+inline void clearLayout(QLayout *layout) {
+    if (!layout) return;
+    QLayoutItem *item;
+    while ((item = layout->takeAt(0)) != nullptr) {
+        if (QWidget *w = item->widget()) {
+            delete w;
+        } else if (QLayout *childLayout = item->layout()) {
+            clearLayout(childLayout);
+        }
+    }
+    delete layout;
+    layout = nullptr;
 }
 
 #endif // PUBLICHEADER_H
