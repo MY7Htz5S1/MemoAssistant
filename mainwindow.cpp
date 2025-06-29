@@ -137,7 +137,7 @@ void MainWindow::initDB(QString dbName){
 
     if(pTimeline) {
         qDebug() << "MainWindow: About to update pTimeline, pTimeline is" << (pTimeline ? "valid" : "null");
-        pTimeline->updateView();
+        //pTimeline->updateView();
         qDebug()<<"Updated pTimeline with" << tasks.size() << "tasks";
     } else {
         qDebug() << "MainWindow: pTimeline is null, cannot update";
@@ -163,9 +163,9 @@ void MainWindow::initContent(){
     this->addPageNode("时间视图",pTimeline, ElaIconType::Timeline);
     this->addPageNode("近期总结",pReport, ElaIconType::Newspaper);  // 添加报告页面到导航
 
-    this->addFooterNode("关于",pAbout,aboutKey,0,ElaIconType::User);
-    this->addFooterNode("帮助",pHelp,helpKey,0,ElaIconType::BlockQuestion);
-    this->addFooterNode("设置",pSetting,settingKey,0,ElaIconType::GearComplex);
+    //this->addFooterNode("关于",pAbout,aboutKey,0,ElaIconType::User);
+    //this->addFooterNode("帮助",pHelp,helpKey,0,ElaIconType::BlockQuestion);
+    //this->addFooterNode("设置",pSetting,settingKey,0,ElaIconType::GearComplex);
 
     // 初始化报告页面数据
     if(pReport) {
@@ -450,6 +450,7 @@ void MainWindow::updateUserInfoCard(){
 }
 
 void MainWindow::updateDocker(){
+    /*
     if(rDocker){
         removeDockWidget(rDocker);
         delete rDocker;
@@ -460,6 +461,7 @@ void MainWindow::updateDocker(){
     this->addDockWidget(Qt::RightDockWidgetArea, rDocker);
     resizeDocks({rDocker},{300},Qt::Horizontal);
     qDebug()<<tasks.size();
+    */
 }
 
 void MainWindow::databaseChangedSlot() {
@@ -480,7 +482,7 @@ void MainWindow::databaseChangedSlot() {
 
     // 更新时间视图页面
     if(pTimeline) {
-        pTimeline->updateView();
+        //pTimeline->updateView();
         qDebug()<<"Updated pTimeline in databaseChangedSlot with" << tasks.size() << "tasks";
     }
 }
