@@ -6,7 +6,6 @@
 #include <QtSql/QSqlError>
 #include "ElaMessageBar.h"
 #include "logindialog.h"
-#include "Pages/p_docker.h"
 #include "ElaMenu.h"
 #include <QMessageBox>
 
@@ -103,42 +102,59 @@ void MainWindow::performLogout() {
     Logout();
 }
 
+
 void MainWindow::initDB(QString dbName){
+    qDebug() << "MainWindow::initDB() called with dbName:" << dbName;
+
     if(db){
         delete db;
         db = nullptr;
     }
+
     db = new Database(dbName);
     connect(tManage,&TaskManageEventBus::TaskChanged,db,&Database::updateTask);
     connect(tManage,&TaskManageEventBus::TaskAdded,db,&Database::insertTask);
     connect(tManage,&TaskManageEventBus::TaskDeleted,db,&Database::deleteTask);
     connect(tManage,&TaskManageEventBus::DatabaseChanged,this,&MainWindow::databaseChangedSlot);
+
     qDebug()<<"open database named " + dbName;
     tasks = db->queryAllTask();
+    qDebug()<<"Loaded tasks count:" << tasks.size();
+
     updateUserInfoCard();
     updateDocker();
+
+    if(pManage) {
+        pManage->updateCards(tasks);
+        qDebug()<<"Updated pManage with" << tasks.size() << "tasks";
+    }
+
+    if(pReport) {
+        pReport->updateTasks(tasks);
+        qDebug()<<"Updated pReport with" << tasks.size() << "tasks";
+    }
+
+    if(pTimeline) {
+        qDebug() << "MainWindow: About to update pTimeline, pTimeline is" << (pTimeline ? "valid" : "null");
+        //pTimeline->updateView();
+        qDebug()<<"Updated pTimeline with" << tasks.size() << "tasks";
+    } else {
+        qDebug() << "MainWindow: pTimeline is null, cannot update";
+    }
+
+    qDebug() << "MainWindow::initDB() completed";
 }
 
 void MainWindow::initContent(){
     pHome = new P_Home(this);
     pManage = new P_Manage(tasks,this);
     pTimeline = new P_Timeline(tasks, this);
-    pReport = new P_Report(this);  // 初始化报告页面
-    pSetting = new P_Setting(this);
-    QString settingKey;
-    pHelp = new P_Help(this);
-    QString helpKey;
-    pAbout = new P_About(this);
-    QString aboutKey;
+    pReport = new P_Report(this);
 
     this->addPageNode("主页", pHome, ElaIconType::House);
     this->addPageNode("事项管理", pManage, ElaIconType::Book);
     this->addPageNode("时间视图",pTimeline, ElaIconType::Timeline);
-    this->addPageNode("近期总结",pReport, ElaIconType::Newspaper);  // 添加报告页面到导航
-
-    this->addFooterNode("关于",pAbout,aboutKey,0,ElaIconType::User);
-    this->addFooterNode("帮助",pHelp,helpKey,0,ElaIconType::BlockQuestion);
-    this->addFooterNode("设置",pSetting,settingKey,0,ElaIconType::GearComplex);
+    this->addPageNode("近期总结",pReport, ElaIconType::Newspaper);
 
     // 初始化报告页面数据
     if(pReport) {
@@ -423,6 +439,7 @@ void MainWindow::updateUserInfoCard(){
 }
 
 void MainWindow::updateDocker(){
+    /*
     if(rDocker){
         removeDockWidget(rDocker);
         delete rDocker;
@@ -433,6 +450,7 @@ void MainWindow::updateDocker(){
     this->addDockWidget(Qt::RightDockWidgetArea, rDocker);
     resizeDocks({rDocker},{300},Qt::Horizontal);
     qDebug()<<tasks.size();
+    */
 }
 
 void MainWindow::databaseChangedSlot() {
@@ -441,10 +459,19 @@ void MainWindow::databaseChangedSlot() {
     updateUserInfoCard();
     updateDocker();
 
-    pManage->updateCards(tasks);
+    // 更新事项管理页面
+    if(pManage) {
+        pManage->updateCards(tasks);
+    }
 
     // 更新报告页面数据
     if(pReport) {
         pReport->updateTasks(tasks);
+    }
+
+    // 更新时间视图页面
+    if(pTimeline) {
+        //pTimeline->updateView();
+        qDebug()<<"Updated pTimeline in databaseChangedSlot with" << tasks.size() << "tasks";
     }
 }

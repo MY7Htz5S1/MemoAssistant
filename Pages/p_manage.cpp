@@ -47,15 +47,21 @@ P_Manage::P_Manage(TaskList& tskList, QWidget* parent):
     addCentralWidget(widget);
 }
 void P_Manage::updateCards(TaskList& tasks) {
+    // 使用 deleteLater() 而不是 delete，避免立即删除正在使用的对象
     while(cardLayout->count()) {
         const auto item = cardLayout->itemAt(0);
         cardLayout->removeItem(item);
-        delete item->widget();
+        if (item->widget()) {
+            item->widget()->deleteLater();  // 延迟删除，避免悬空指针
+        }
+        delete item;  // 删除布局项本身
     }
+
     for(auto &p:tasks) {
         auto *task = new TaskCard(p,widget);
         cardLayout->addWidget(task);
     }
+
     if(tasks.size() == 0) {
         auto *text = new ElaPushButton("今天没有事项~,点击新建事项", cardGroup);
         connect(text,&ElaPushButton::clicked,this,&P_Manage::addNewTask);

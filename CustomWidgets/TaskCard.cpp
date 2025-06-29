@@ -129,12 +129,21 @@ void TaskCard::changeButtonClicked() {
     changeWindow->show();
 }
 
+
 void TaskCard::deleteButtonClicked() {
-    bool ok;
-    emit tManage->TaskDeleted(task,ok);
+    bool ok = false;
+    emit tManage->TaskDeleted(task, ok);
     if(ok) {
-        ElaMessageBar::success(ElaMessageBarType::TopRight,"删除成功","",3000);
-    }else {
-        ElaMessageBar::error(ElaMessageBarType::TopRight,"删除失败","",3000);
+        ElaMessageBar::success(ElaMessageBarType::TopRight, "删除成功", "", 3000);
+        // 不要在这里直接删除TaskCard，让父窗口通过数据库更新来处理
+        // 数据库更新会触发 databaseChangedSlot，进而更新界面
+    } else {
+        ElaMessageBar::error(ElaMessageBarType::TopRight, "删除失败", "", 3000);
+    }
+}
+
+TaskCard::~TaskCard() {
+    if (changeWindow && !changeWindow->isHidden()) {
+        changeWindow->close();
     }
 }

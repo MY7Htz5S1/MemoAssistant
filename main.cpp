@@ -3,7 +3,6 @@
 #include "include/ElaApplication.h"
 #include "include/ElaTheme.h"  // 添加这个头文件
 #include "publicheader.h"
-#include "Pages/p_docker.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])

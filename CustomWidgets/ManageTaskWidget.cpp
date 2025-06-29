@@ -12,6 +12,9 @@
 ManageTaskWidget::ManageTaskWidget(QWidget* parent):
     QWidget(parent) {
     isAddMode = true;
+    // 初始化一个空的task，确保taskID为-1
+    task = Task();
+    task.taskID = -1;
     createNewTaskForm();
 }
 
@@ -24,7 +27,7 @@ ManageTaskWidget::ManageTaskWidget(const Task& tsk,QWidget* parent):
     qDebug()<<"task id:"<<  task.taskID;
 }
 
-void ManageTaskWidget::readTask(Task& tsk) {
+void ManageTaskWidget::readTask(const Task& tsk) {
     newTaskGroup->setTitle("");
     taskNameEdit->setText(tsk.taskName);
     isContinuousCheck->setChecked(tsk.isContinuous);
@@ -32,9 +35,13 @@ void ManageTaskWidget::readTask(Task& tsk) {
     if(tsk.isContinuous)
         stopDateTimePicker->setDateTime(tsk.stopTime);
     priorityCombo->setCurrentIndex(tsk.priority-1);
+
     QString tagsString;
-    for(auto i:tsk.tags) {
-        tagsString+=(i+",");
+    for(const auto& tag : tsk.tags) {
+        tagsString += tag;
+        if(&tag != &tsk.tags.last()) {
+            tagsString += ",";
+        }
     }
     tagsEdit->setText(tagsString);
 }
@@ -167,9 +174,10 @@ void ManageTaskWidget::onSaveButtonClicked() {
 }
 
 void ManageTaskWidget::onClearButtonClicked() {
-    if(task) {
+    // 检查是否在编辑模式且task有效
+    if (!isAddMode && task.taskID != -1) {
         readTask(task);
-    }else {
+    } else {
         clearForm();
     }
     emit taskChangeCancelled();

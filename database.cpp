@@ -252,7 +252,7 @@ bool Database::taskFinished(const Task &t, bool &ok) {
         return false;
     }
     QSqlQuery query(db);
-    query.prepare("UPDATE FROM "+tbName + " WHERE TaskID = ? SET Finished = 1");
+    query.prepare("UPDATE " + tbName + " SET Finished = 1 WHERE TaskID = ?");
     query.addBindValue(t.taskID);
 
     bool isOk = query.exec();
