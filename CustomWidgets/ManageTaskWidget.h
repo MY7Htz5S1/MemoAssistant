@@ -31,7 +31,7 @@ class ManageTaskWidget:public QWidget {
 public:
     explicit ManageTaskWidget(QWidget *parent = nullptr);
     explicit ManageTaskWidget(const Task &tsk, QWidget *parent = nullptr);
-    void readTask(Task& tsk);
+    void readTask(const Task& tsk);
     signals:
         void taskSaved(Task newTask);
     void taskChangeCancelled();
