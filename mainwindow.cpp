@@ -103,20 +103,47 @@ void MainWindow::performLogout() {
     Logout();
 }
 
+
 void MainWindow::initDB(QString dbName){
+    qDebug() << "MainWindow::initDB() called with dbName:" << dbName;
+
     if(db){
         delete db;
         db = nullptr;
     }
+
     db = new Database(dbName);
     connect(tManage,&TaskManageEventBus::TaskChanged,db,&Database::updateTask);
     connect(tManage,&TaskManageEventBus::TaskAdded,db,&Database::insertTask);
     connect(tManage,&TaskManageEventBus::TaskDeleted,db,&Database::deleteTask);
     connect(tManage,&TaskManageEventBus::DatabaseChanged,this,&MainWindow::databaseChangedSlot);
+
     qDebug()<<"open database named " + dbName;
     tasks = db->queryAllTask();
+    qDebug()<<"Loaded tasks count:" << tasks.size();
+
     updateUserInfoCard();
     updateDocker();
+
+    if(pManage) {
+        pManage->updateCards(tasks);
+        qDebug()<<"Updated pManage with" << tasks.size() << "tasks";
+    }
+
+    if(pReport) {
+        pReport->updateTasks(tasks);
+        qDebug()<<"Updated pReport with" << tasks.size() << "tasks";
+    }
+
+    if(pTimeline) {
+        qDebug() << "MainWindow: About to update pTimeline, pTimeline is" << (pTimeline ? "valid" : "null");
+        pTimeline->updateView();
+        qDebug()<<"Updated pTimeline with" << tasks.size() << "tasks";
+    } else {
+        qDebug() << "MainWindow: pTimeline is null, cannot update";
+    }
+
+    qDebug() << "MainWindow::initDB() completed";
 }
 
 void MainWindow::initContent(){
@@ -441,10 +468,19 @@ void MainWindow::databaseChangedSlot() {
     updateUserInfoCard();
     updateDocker();
 
-    pManage->updateCards(tasks);
+    // 更新事项管理页面
+    if(pManage) {
+        pManage->updateCards(tasks);
+    }
 
     // 更新报告页面数据
     if(pReport) {
         pReport->updateTasks(tasks);
+    }
+
+    // 更新时间视图页面
+    if(pTimeline) {
+        pTimeline->updateView();
+        qDebug()<<"Updated pTimeline in databaseChangedSlot with" << tasks.size() << "tasks";
     }
 }

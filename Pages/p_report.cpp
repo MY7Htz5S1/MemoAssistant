@@ -439,8 +439,17 @@ void P_Report::updateDetailTable(const QVector<Task>& tasks)
         m_detailTable->setItem(i, 1, new QTableWidgetItem(task.isContinuous ? "连续任务" : "单次任务"));
         m_detailTable->setItem(i, 2, new QTableWidgetItem(task.startTime.toString("yyyy-MM-dd hh:mm")));
 
-        QString endTimeStr = task.stopTime.isValid() ?
-                                 task.stopTime.toString("yyyy-MM-dd hh:mm") : "进行中";
+        // 根据任务状态显示结束时间
+        QString endTimeStr;
+        if (task.finished) {
+            if (task.stopTime.isValid()) {
+                endTimeStr = task.stopTime.toString("yyyy-MM-dd hh:mm");
+            } else {
+                endTimeStr = "已完成";
+            }
+        } else {
+            endTimeStr = "进行中";
+        }
         m_detailTable->setItem(i, 3, new QTableWidgetItem(endTimeStr));
 
         double duration = calculateTaskDuration(task);
@@ -474,8 +483,8 @@ ReportStatistics P_Report::calculateStatistics(const QVector<Task>& filteredTask
     stats.totalTasks = filteredTasks.size();
 
     for (const Task& task : filteredTasks) {
-        // 计算完成任务数（有结束时间的任务）
-        if (task.stopTime.isValid()) {
+        // 计算完成任务数（根据finished属性判断）
+        if (task.finished) {
             stats.completedTasks++;
         }
 
@@ -503,7 +512,7 @@ ReportStatistics P_Report::calculateStatistics(const QVector<Task>& filteredTask
         stats.dailyStats[taskDate]++;
     }
 
-    // 计算平均任务时长
+    // 计算平均任务时长（只计算已完成的任务）
     stats.averageTaskDuration = stats.completedTasks > 0 ?
                                     stats.totalHours / stats.completedTasks : 0;
 
@@ -512,11 +521,14 @@ ReportStatistics P_Report::calculateStatistics(const QVector<Task>& filteredTask
 
 double P_Report::calculateTaskDuration(const Task& task)
 {
-    if (!task.stopTime.isValid()) {
-        // 如果任务还在进行中，计算到当前时间
+    // 如果任务已完成且有结束时间，使用实际时长
+    if (task.finished && task.stopTime.isValid()) {
+        return task.startTime.secsTo(task.stopTime) / 3600.0;
+    }
+    // 如果任务已完成但没有结束时间，或者任务未完成，计算到当前时间
+    else {
         return task.startTime.secsTo(QDateTime::currentDateTime()) / 3600.0;
     }
-    return task.startTime.secsTo(task.stopTime) / 3600.0;
 }
 
 QString P_Report::formatDuration(double hours)
