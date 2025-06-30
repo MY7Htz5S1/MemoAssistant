@@ -245,14 +245,15 @@ bool Database::deleteTask(const Task& t, bool &ok) {
     return true;
 }
 
-bool Database::taskFinished(const Task &t, bool &ok) {
+bool Database::taskFinished(const Task &t, bool finished, bool &ok) {
     if (!db.open()) {
         qDebug() << "database open failed!" << db.lastError();
         ok = false;
         return false;
     }
     QSqlQuery query(db);
-    query.prepare("UPDATE " + tbName + " SET Finished = 1 WHERE TaskID = ?");
+    query.prepare("UPDATE " + tbName + " SET Finished = ? WHERE TaskID = ?");
+    query.addBindValue(finished ? 1 : 0);
     query.addBindValue(t.taskID);
 
     bool isOk = query.exec();

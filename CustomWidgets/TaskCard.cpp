@@ -22,48 +22,55 @@ void TaskCard::showCard() {
     layout = new QGridLayout(this);
     layout->setSpacing(10);
     layout->setContentsMargins(10,10,10,10);
-    int row = 0;
+    int row1 = 0;
+    int row2 = 0;
+    gLayout = new QGridLayout;
+    gLayout->setSpacing(10);
 
     title = new ElaText(task.taskName, 25, this);
-    layout->addWidget(title,row,0,1,0,Qt::AlignLeft);
-    row++;
+    gLayout->addWidget(title,row2,0,Qt::AlignLeft);
+    row2++;
 
     QString starString{};
     for(int i = 0;i<task.priority;i++) {
         starString+="⭐";
     }
     stars = new ElaText(starString, 15, this);
-    layout->addWidget(stars,row,0,1,0,Qt::AlignLeft);
-    row++;
+    gLayout->addWidget(stars,row2, 0, Qt::AlignLeft);
+
+    layout->addLayout(gLayout,row1,0,1,0,Qt::AlignLeft);
+    finishBox = new ElaCheckBox("已完成",this);
+    finishBox->setChecked(task.finished);
+    connect(finishBox,&ElaCheckBox::toggled,this,&TaskCard::finishBoxStateChanged);
+    gLayout->addWidget(finishBox,0,1,0,2,Qt::AlignCenter);
+    row1++;
 
     continuousText = new ElaText("连续事件:",15,this);
-    layout->addWidget(continuousText,row,0,Qt::AlignLeft);
-
+    layout->addWidget(continuousText,row1,0,Qt::AlignLeft);
     continuousSwitch = new ElaToggleSwitch(this);
     continuousSwitch->setIsToggled(task.isContinuous);
     continuousSwitch->setEnabled(false);
-    layout->addWidget(continuousSwitch,row,1,Qt::AlignLeft);
-    row++;
+    layout->addWidget(continuousSwitch,row1,1,Qt::AlignLeft);
+    row1++;
 
     startText = new ElaText("开始于:",15,this);
-    layout->addWidget(startText,row,0,Qt::AlignLeft);
-
+    layout->addWidget(startText,row1,0,Qt::AlignLeft);
     startDT = new ElaText(this);
     startDT->setText(task.startTime.toString("yyyy-MM-dd hh:mm:ss"));
     startDT->setTextPixelSize(15);
     //startDT->setFocusPolicy(Qt::NoFocus);
-    layout->addWidget(startDT,row,1,Qt::AlignCenter);
-    row++;
+    layout->addWidget(startDT,row1,1,Qt::AlignCenter);
+    row1++;
 
     if(task.isContinuous) {
         stopText = new ElaText("结束于:",15,this);
-        layout->addWidget(stopText,row,0,Qt::AlignLeft);
+        layout->addWidget(stopText,row1,0,Qt::AlignLeft);
 
         stopDT = new ElaText(this);
         stopDT->setText(task.stopTime.toString("yyyy-MM-dd hh:mm:ss"));
         stopDT->setTextPixelSize(15);
-        layout->addWidget(stopDT,row,1,Qt::AlignCenter);
-        row++;
+        layout->addWidget(stopDT,row1,1,Qt::AlignCenter);
+        row1++;
     }
     if(!task.tags.empty()) {
         tags = new ElaFlowLayout();
@@ -83,8 +90,8 @@ void TaskCard::showCard() {
                            .arg(color.alpha()));  // 半透明背景
             tags->addWidget(tag);
         }
-        layout->addLayout(tags,row,0,1,0, Qt::AlignCenter);
-        row++;
+        layout->addLayout(tags,row1,0,1,0, Qt::AlignCenter);
+        row1++;
     }
 
     buttons = new QHBoxLayout();
@@ -97,11 +104,12 @@ void TaskCard::showCard() {
     changeButton = new ElaPushButton("修改",this);
     buttons->addWidget(changeButton);
     buttons->addStretch();
-    layout->addLayout(buttons,row,0,1,0, Qt::AlignCenter);
+    layout->addLayout(buttons,row1,0,1,0, Qt::AlignCenter);
 
     layout->setColumnStretch(2,5);
     connect(changeButton,&ElaPushButton::clicked,this,&TaskCard::changeButtonClicked);
     connect(deleteButton,&ElaPushButton::clicked,this,&TaskCard::deleteButtonClicked);
+    row1++;
 }
 
 
@@ -139,6 +147,16 @@ void TaskCard::deleteButtonClicked() {
         // 数据库更新会触发 databaseChangedSlot，进而更新界面
     } else {
         ElaMessageBar::error(ElaMessageBarType::TopRight, "删除失败", "", 3000);
+    }
+}
+
+void TaskCard::finishBoxStateChanged(const bool checked) {
+    bool ok = false;
+    emit tManage->TaskFinished(task,checked,ok);
+    if(ok) {
+        ElaMessageBar::success(ElaMessageBarType::TopRight, "更新成功", "", 3000);
+    } else {
+        ElaMessageBar::error(ElaMessageBarType::TopRight, "更新失败", "", 3000);
     }
 }
 

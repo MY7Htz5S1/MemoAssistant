@@ -21,6 +21,8 @@ class TaskCard: public QGroupBox {
 private:
     Task task;
     QGridLayout *layout{};
+    QGridLayout *gLayout{};
+    ElaCheckBox *finishBox{};
     ElaText *title{};
     ElaText *stars{};
     ElaText *continuousText{};
@@ -42,9 +44,8 @@ public:
     void showCard();
     void changeButtonClicked();
     void deleteButtonClicked();
+    void finishBoxStateChanged(bool checked);
 
-    void taskChanged(Task tsk);
-    void taskChangeCancelled();
     ~TaskCard();
 };
 

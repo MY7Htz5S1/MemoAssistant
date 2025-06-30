@@ -24,7 +24,7 @@ public:
     bool deleteTask(const Task& t, bool& ok);
     QVector<Task> queryTasksByDate(const QDate& date);
     bool isConnected() const { return db.isOpen(); }
-    bool taskFinished(const Task& t, bool& ok);
+    bool taskFinished(const Task& t,bool finished, bool& ok);
 };
 
 #endif // DATABASE_H
