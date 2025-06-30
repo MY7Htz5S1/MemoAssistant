@@ -55,17 +55,9 @@ CalendarView::CalendarView(QVector<Task> &tasks, QWidget *parent):
     calendarGrid = nullptr;
     headerLayout = nullptr;
 
-    buildCalendar(QDate::currentDate());
-
-    setLayout(mainLayout);
 }
 
 void CalendarView::buildCalendar(const QDate& month) {
-
-    QString MONTH_NAME[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-
-    QString DAY_NAME[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 
     mainLayout = new QVBoxLayout(this);
 
@@ -73,6 +65,20 @@ void CalendarView::buildCalendar(const QDate& month) {
     headerLayout = new QHBoxLayout();
 
     current_date = month;
+
+    initCalendar();
+
+    setLayout(mainLayout);
+}
+
+void CalendarView::initCalendar() {
+
+    qDebug() << "Calendar init.";
+
+    QString MONTH_NAME[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+    QString DAY_NAME[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 
     auto *prevMonthButton = new ElaIconButton(ElaIconType::AngleLeft);
     auto *nextMonthButton = new ElaIconButton(ElaIconType::AngleRight);
@@ -84,7 +90,7 @@ void CalendarView::buildCalendar(const QDate& month) {
     connect(nextMonthButton, &ElaIconButton::clicked, this, &CalendarView::nextMonth);
 
     ElaText *titleLabel = new ElaText(
-        MONTH_NAME[month.month()-1] + ' ' + QString::number(month.year()), this);
+        MONTH_NAME[current_date.month()-1] + ' ' + QString::number(current_date.year()), this);
     titleLabel->setTextPixelSize(20);
     titleLabel->setAlignment(Qt::AlignCenter);
     QFont font = titleLabel->font();
@@ -102,7 +108,7 @@ void CalendarView::buildCalendar(const QDate& month) {
 
     int row = 0;
 
-    QDate firstDay = QDate(month.year(), month.month(), 1);
+    QDate firstDay = QDate(current_date.year(), current_date.month(), 1);
     int startDayOfWeek = firstDay.dayOfWeek();
 
     QDate current = firstDay.addDays(-startDayOfWeek + 1);  // 从这个周的周一开始
@@ -118,7 +124,7 @@ void CalendarView::buildCalendar(const QDate& month) {
     for(row++; ; row++) {
         for(int col = 0; col < 7; col++) {
             DayCell *cell = new DayCell(current, this);
-            bool in_current_month = current.month() == month.month();
+            bool in_current_month = current.month() == current_date.month();
             if(in_current_month) {
                 QVector<Task> tasks = tasksForDate(current);
                 cell->setTasks(tasks);
@@ -126,7 +132,7 @@ void CalendarView::buildCalendar(const QDate& month) {
             else cell->setStyleSheet("color: grey;");
             calendarGrid->addWidget(cell, row, col);
             current = current.addDays(1);
-            if(in_current_month && current.month() != month.month()) // 生成到下一个月了
+            if(in_current_month && current.month() != current_date.month()) // 生成到下一个月了
                 end_generate = true;
         }
         if(end_generate) break;
@@ -136,7 +142,6 @@ void CalendarView::buildCalendar(const QDate& month) {
     mainLayout->addLayout(calendarGrid);
 
     mainLayout->addSpacing(10);
-
 }
 
 QVector<Task> CalendarView::tasksForDate(const QDate& date) {
@@ -173,5 +178,98 @@ QSize CalendarView::sizeHint() const {
     return QWidget::sizeHint();
 }
 
+WeekCalendarView::WeekCalendarView(QVector<Task> &tasks, QDate date, QWidget *parent):
+    CalendarView(tasks, parent) {
+
+}
+
+void WeekCalendarView::initCalendar() {
+
+    qDebug() << "WeekCalendar init.";
+
+    QString MONTH_NAME[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                              "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+    QString DAY_NAME[7] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+
+    auto *prevMonthButton = new ElaIconButton(ElaIconType::AnglesLeft);
+    auto *prevWeekButton  = new ElaIconButton(ElaIconType::AngleLeft);
+    auto *nextWeekButton  = new ElaIconButton(ElaIconType::AngleRight);
+    auto *nextMonthButton = new ElaIconButton(ElaIconType::AnglesRight);
+
+    prevMonthButton->setFixedSize(70, 50);
+    prevWeekButton ->setFixedSize(70, 50);
+    nextWeekButton ->setFixedSize(70, 50);
+    nextMonthButton->setFixedSize(70, 50);
+
+    connect(prevMonthButton, &ElaIconButton::clicked, this, &WeekCalendarView::prevMonth);
+    connect(prevWeekButton,  &ElaIconButton::clicked, this, &WeekCalendarView::prevWeek);
+    connect(nextWeekButton,  &ElaIconButton::clicked, this, &WeekCalendarView::nextWeek);
+    connect(nextMonthButton, &ElaIconButton::clicked, this, &WeekCalendarView::nextMonth);
+
+    ElaText *titleLabel = new ElaText(
+        MONTH_NAME[current_date.month()-1] + ' ' + QString::number(current_date.year()), this);
+    titleLabel->setTextPixelSize(20);
+    titleLabel->setAlignment(Qt::AlignCenter);
+    QFont font = titleLabel->font();
+    font.setPointSize(20);
+    font.setBold(true);
+    titleLabel->setFont(font);
+
+    headerLayout->addWidget(prevMonthButton);
+    headerLayout->addWidget(prevWeekButton);
+
+    headerLayout->addStretch();
+    headerLayout->addWidget(titleLabel);
+    headerLayout->addStretch();
+
+    headerLayout->addWidget(nextWeekButton);
+    headerLayout->addWidget(nextMonthButton);
+
+    int row = 0;
+
+    QDate firstDay = QDate(current_date.year(), current_date.month(), 1);
+    int startDayOfWeek = firstDay.dayOfWeek();
+
+    QDate current = firstDay.addDays(-startDayOfWeek + 1);  // 从这个周的周一开始
+
+    for(int col = 0; col < 7; col++) {
+        ElaText *nameLabel = new ElaText(DAY_NAME[col], this);
+        nameLabel->setTextPixelSize(15);
+        calendarGrid->addWidget(nameLabel, row, col);
+    }
+
+    bool end_generate = false;
+
+    for(row++; ; row++) {
+        for(int col = 0; col < 7; col++) {
+            DayCell *cell = new DayCell(current, this);
+            bool in_current_month = current.month() == current_date.month();
+            if(in_current_month) {
+                QVector<Task> tasks = tasksForDate(current);
+                cell->setTasks(tasks);
+            }
+            else cell->setStyleSheet("color: grey;");
+            calendarGrid->addWidget(cell, row, col);
+            current = current.addDays(1);
+            if(in_current_month && current.month() != current_date.month()) // 生成到下一个月了
+                end_generate = true;
+        }
+        if(end_generate) break;
+    }
+
+    mainLayout->addLayout(headerLayout);
+    mainLayout->addLayout(calendarGrid);
+
+    mainLayout->addSpacing(10);
+}
+
+void WeekCalendarView::prevWeek() {
+
+}
+
+void WeekCalendarView::nextWeek() {
+
+}
 
 

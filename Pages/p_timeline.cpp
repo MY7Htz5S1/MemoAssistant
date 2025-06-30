@@ -1,6 +1,5 @@
 #include "p_timeline.h"
 #include "ElaMessageBar.h"
-#include "../CustomWidgets/CalendarView.h"
 #include "ElaRadioButton.h"
 #include "ElaText.h"
 #include <QDebug>
@@ -13,6 +12,8 @@ P_Timeline::P_Timeline(QVector<Task> &tasks, QWidget* parent):
     widget = new QWidget(this);
     setWindowTitle("时间视图");
     setTitleVisible(false);
+
+    current_date = QDate::currentDate();
 
     mainLayout = new QVBoxLayout(widget);
 
@@ -35,12 +36,14 @@ P_Timeline::P_Timeline(QVector<Task> &tasks, QWidget* parent):
     });
 
     connect(weekButton, &ElaRadioButton::clicked, this, [=]() {
-        updateViewType("Week");
+        updateViewType("WeekCalendar");
     });
 
     mainLayout->addLayout(viewTypeLayout);
 
     setView(view_type);
+
+    current_date = calendarWidget->current_date;
 
     widget->setLayout(mainLayout);
 
@@ -53,12 +56,11 @@ void P_Timeline::setView(QString type) {
 
     if(type == "Calendar") {
         calendarWidget = new CalendarView(task_list);
+        calendarWidget->buildCalendar(current_date);
     }
-    else if(type == "Week") {
-        ElaMessageBar::error(
-            ElaMessageBarType::BottomRight, "暂不支持!", "", 3000);
-        return;
-        //auto weekCalendar = new WeekView(task_list, widget);
+    else if(type == "WeekCalendar") {
+        calendarWidget = new WeekCalendarView(task_list, current_date);
+        calendarWidget->buildCalendar(current_date);
     }
     else if(type == "Timeline") {
         ElaMessageBar::error(
@@ -85,6 +87,7 @@ void P_Timeline::updateTimeline(QVector<Task> &tasks) {
 }
 
 void P_Timeline::updateViewType(QString type) {
+    qDebug() << "Change view type to" << type;
     mainLayout->removeWidget(calendarWidget);
     if(calendarWidget) {
         delete calendarWidget;
