@@ -16,6 +16,7 @@ signals:
 	void TaskChanged(Task tsk, bool& ok);
 	void TaskDeleted(Task tsk, bool& ok);
 	void TaskAdded(Task tsk, bool& ok);
+	void TaskFinished(Task tsk,bool finished, bool& ok);
 	void DatabaseChanged();
 	void DatabaseUnchanged();
 private:

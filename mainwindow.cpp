@@ -116,7 +116,7 @@ void MainWindow::initDB(QString dbName){
     connect(tManage,&TaskManageEventBus::TaskAdded,db,&Database::insertTask);
     connect(tManage,&TaskManageEventBus::TaskDeleted,db,&Database::deleteTask);
     connect(tManage,&TaskManageEventBus::DatabaseChanged,this,&MainWindow::databaseChangedSlot);
-
+    connect(tManage,&TaskManageEventBus::TaskFinished,db,&Database::taskFinished);
     qDebug()<<"open database named " + dbName;
     tasks = db->queryAllTask();
     qDebug()<<"Loaded tasks count:" << tasks.size();
