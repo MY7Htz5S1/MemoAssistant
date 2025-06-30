@@ -26,24 +26,36 @@ class CalendarView : public QWidget
     Q_OBJECT
 public:
     explicit CalendarView(QVector<Task> &tasks, QWidget *parent = nullptr);
-
-private:
+    QDate current_date;
     QVector<Task> &task_list;
     QVBoxLayout *mainLayout;
-    QHBoxLayout *headerLayout;
+    QGridLayout *headerLayout;
     QGridLayout *calendarGrid;
-
-    QDate current_date;
-
-    void buildCalendar(const QDate& month);
     QVector<Task> tasksForDate(const QDate& date); // 获取某天的任务
+    void buildCalendar(const QDate& month);
     void refreshCalendar();
-    QSize sizeHint() const override;
 
-private slots:
+private:
+    QSize sizeHint() const override;
+    virtual void initCalendar();
+
+public slots:
     void nextMonth();
     void prevMonth();
     void taskChanged(Task t, bool& ok);
+};
+
+class WeekCalendarView: public CalendarView {
+    Q_OBJECT
+public:
+    explicit WeekCalendarView(QVector<Task> &tasks, QDate date, QWidget *parent = nullptr);
+
+private:
+    void initCalendar() override;
+
+private slots:
+    void nextWeek();
+    void prevWeek();
 };
 
 #endif // CALENDARVIEW_H
