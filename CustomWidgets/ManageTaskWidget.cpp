@@ -111,11 +111,11 @@ void ManageTaskWidget::createNewTaskForm() {
     auto *priorityLabel = new ElaText("优先级:", newTaskGroup);
     priorityLabel->setTextPixelSize(14);
     priorityCombo = new ElaComboBox(newTaskGroup);
-    priorityCombo->addItem("⭐ 低优先级", 1);
-    priorityCombo->addItem("⭐⭐ 中优先级", 2);
-    priorityCombo->addItem("⭐⭐⭐ 高优先级", 3);
-    priorityCombo->addItem("⭐⭐⭐⭐ 紧急", 4);
-    priorityCombo->addItem("⭐⭐⭐⭐⭐ 最高优先级", 5);
+    priorityCombo->addItem("⭐ 一级", 1);
+    priorityCombo->addItem("⭐⭐ 二级", 2);
+    priorityCombo->addItem("⭐⭐⭐ 三级", 3);
+    priorityCombo->addItem("⭐⭐⭐⭐ 四级", 4);
+    priorityCombo->addItem("⭐⭐⭐⭐⭐ 五级", 5);
     priorityCombo->setCurrentIndex(1); // 默认中优先级
     formLayout->addWidget(priorityLabel, row, 0);
     formLayout->addWidget(priorityCombo, row, 1, 1, 2);
