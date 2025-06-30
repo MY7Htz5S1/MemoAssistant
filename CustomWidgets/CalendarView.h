@@ -29,13 +29,13 @@ public:
     QDate current_date;
     QVector<Task> &task_list;
     QVBoxLayout *mainLayout;
-    QHBoxLayout *headerLayout;
+    QGridLayout *headerLayout;
     QGridLayout *calendarGrid;
     QVector<Task> tasksForDate(const QDate& date); // 获取某天的任务
     void buildCalendar(const QDate& month);
+    void refreshCalendar();
 
 private:
-    void refreshCalendar();
     QSize sizeHint() const override;
     virtual void initCalendar();
 
