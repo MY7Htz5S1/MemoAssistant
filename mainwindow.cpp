@@ -119,6 +119,7 @@ void MainWindow::initDB(QString dbName){
     connect(tManage,&TaskManageEventBus::TaskFinished,db,&Database::taskFinished);
     qDebug()<<"open database named " + dbName;
     tasks = db->queryAllTask();
+    std::sort(tasks.begin(),tasks.end(),sortByDate());
     qDebug()<<"Loaded tasks count:" << tasks.size();
 
     updateUserInfoCard();
@@ -455,6 +456,7 @@ void MainWindow::updateDocker(){
 
 void MainWindow::databaseChangedSlot() {
     tasks = db->queryAllTask();
+    std::sort(tasks.begin(),tasks.end(),sortByDate());
     qDebug()<<"databaseChangedSlot:"<<tasks.size();
     updateUserInfoCard();
     updateDocker();

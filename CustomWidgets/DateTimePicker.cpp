@@ -65,6 +65,7 @@ void DateTimePicker::setDateTime(const QDateTime& dateTime) {
     hourRoller->setCurrentIndex(dateTime.time().hour());
     minRoller->setCurrentIndex(dateTime.time().minute());
     secRoller->setCurrentIndex(dateTime.time().second());
+    update();
 }
 
 
