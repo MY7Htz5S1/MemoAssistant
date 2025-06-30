@@ -61,7 +61,7 @@ void ManageTaskWidget::createNewTaskForm() {
     if (isAddMode){
         // 初始化文本输入框（支持段落输入）
         paragraphInput = new ElaPlainTextEdit(this);
-        paragraphInput->setPlaceholderText("请输入任务段落（例：明天10点开会，讨论项目进度 #重要 #会议）");
+        paragraphInput->setPlaceholderText("请输入任务段落（例：开会，讨论项目进度@明天10点 &紧急 #会议）");
         paragraphInput->setMinimumHeight(150);
         formLayout->addWidget(paragraphInput, row,0,1,0);
         row++;
