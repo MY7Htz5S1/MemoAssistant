@@ -443,13 +443,14 @@ void P_Report::updateDetailTable(const QVector<Task>& tasks)
         // 根据任务状态显示结束时间
         QString endTimeStr;
         if (task.finished) {
-            if (task.stopTime.isValid()) {
+            if (task.isContinuous) {
                 endTimeStr = task.stopTime.toString("yyyy-MM-dd hh:mm");
             } else {
                 endTimeStr = "已完成";
             }
         } else {
-            endTimeStr = "进行中";
+            if(task.startTime<=QDateTime::currentDateTime()) endTimeStr = "进行中";
+            else endTimeStr = "-";
         }
         m_detailTable->setItem(i, 3, new QTableWidgetItem(endTimeStr));
 
@@ -533,13 +534,13 @@ ReportStatistics P_Report::calculateStatistics(const QVector<Task>& filteredTask
 double P_Report::calculateTaskDuration(const Task& task)
 {
     // 如果是非持续任务，直接返回0
-    if (!task.isContinuous) {
+    if (!task.isContinuous || task.startTime>QDateTime::currentDateTime()) {
         return 0.0;
     }
 
     // 以下逻辑只对持续任务生效
     // 如果任务已完成且有结束时间，使用实际时长
-    if (task.finished && task.stopTime.isValid()) {
+    if (task.finished && task.isContinuous) {
         return task.startTime.secsTo(task.stopTime) / 3600.0;
     }
     // 如果任务已完成但没有结束时间，或者任务未完成，计算到当前时间

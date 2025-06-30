@@ -62,7 +62,7 @@ void ManageTaskWidget::createNewTaskForm() {
         // 初始化文本输入框（支持段落输入）
         paragraphInput = new ElaPlainTextEdit(this);
         paragraphInput->setPlaceholderText("请输入任务段落（例：开会，讨论项目进度@明天10点 &紧急 #会议）");
-        paragraphInput->setMinimumHeight(150);
+        paragraphInput->setMaximumHeight(50);
         formLayout->addWidget(paragraphInput, row,0,1,0);
         row++;
 
@@ -280,6 +280,7 @@ void ManageTaskWidget::parseText(const QString &text)
     }
     task.tags = tags;
 
+    task.priority = 2;
     // 使用QRegularExpression提取&标签标记
     QRegularExpression priorityRegex("&([^@#\\n]+)");
     QRegularExpressionMatch priorityMatch = priorityRegex.match(text);
@@ -425,18 +426,33 @@ QDateTime ManageTaskWidget::parseSmartDateTime(const QString &input)
 
 
     // 4. 处理"半小时后"/"1小时30分钟后"等相对时间
-    QRegularExpression relativeTimePattern("(\\d+)[小时]?\\s*(\\d*)[分钟]?后");
+    QRegularExpression relativeTimePattern("(\\d*\\.?\\d+)\\s*小时|(半)|(\\d*\\.?\\d+)\\s*分钟");
     QRegularExpressionMatch relativeMatch = relativeTimePattern.match(text);
     if (relativeMatch.hasMatch()) {
-        int hours = relativeMatch.captured(1).toInt();
-        int minutes = relativeMatch.captured(2).toInt();
+        double hours = 0;
+        double minutes = 0;
 
-        if (minutes == 0 && text.contains("半")) {
-            minutes = 30; // 处理"半小时后"
+        // 处理小时部分
+        if (!relativeMatch.captured(1).isEmpty()) {
+            hours = relativeMatch.captured(1).toDouble();
         }
 
-        result = QDateTime::currentDateTime().addSecs(hours * 3600 + minutes * 60);
-        return result;
+        // 处理"半小时"
+        if (!relativeMatch.captured(2).isEmpty()) {
+            minutes = 30;
+        }
+
+        // 处理分钟部分
+        if (!relativeMatch.captured(3).isEmpty()) {
+            minutes = relativeMatch.captured(3).toDouble();
+        }
+
+        // 计算总秒数
+        int totalSeconds = qRound(hours * 3600 + minutes * 60);
+        if (totalSeconds > 0) {
+            result = QDateTime::currentDateTime().addSecs(totalSeconds);
+            return result;
+        }
     }
 
     // 如果没有指定日期，默认为今天
@@ -459,7 +475,7 @@ int ManageTaskWidget::parsePriority(const QString &text)
     int priority = 2;
 
     // 处理"几级"格式（如"1级"、"五级"）
-    QRegularExpression levelRegex("([一二三四五1-5])级");
+    QRegularExpression levelRegex("([一二三四五1-5])\\s*级?");
     QRegularExpressionMatch levelMatch = levelRegex.match(text);
 
     if (levelMatch.hasMatch()) {
