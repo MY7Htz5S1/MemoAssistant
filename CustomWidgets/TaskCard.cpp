@@ -23,26 +23,30 @@ void TaskCard::showCard() {
     layout->setSpacing(10);
     layout->setContentsMargins(10,10,10,10);
     int row1 = 0;
-    int row2 = 0;
-    gLayout = new QGridLayout;
+
+    gLayout = new QVBoxLayout;
     gLayout->setSpacing(10);
 
     title = new ElaText(task.taskName, 25, this);
-    gLayout->addWidget(title,row2,0,Qt::AlignLeft);
-    row2++;
+    gLayout->addWidget(title,0,Qt::AlignLeft);
 
     QString starString{};
     for(int i = 0;i<task.priority;i++) {
         starString+="⭐";
     }
     stars = new ElaText(starString, 15, this);
-    gLayout->addWidget(stars,row2, 0, Qt::AlignLeft);
+    gLayout->addWidget(stars, 0,Qt::AlignLeft);
 
-    layout->addLayout(gLayout,row1,0,1,0,Qt::AlignLeft);
+    hLayout = new QHBoxLayout;
+    hLayout->addLayout(gLayout);
+    hLayout->addStretch(1);
+
     finishBox = new ElaCheckBox("已完成",this);
     finishBox->setChecked(task.finished);
     connect(finishBox,&ElaCheckBox::toggled,this,&TaskCard::finishBoxStateChanged);
-    gLayout->addWidget(finishBox,0,1,0,2,Qt::AlignCenter);
+    hLayout->addWidget(finishBox,0,Qt::AlignRight);
+
+    layout->addLayout(hLayout,row1,0,1,0,Qt::AlignLeft);
     row1++;
 
     continuousText = new ElaText("连续事件:",15,this);

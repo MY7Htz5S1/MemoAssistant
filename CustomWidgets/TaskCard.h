@@ -21,7 +21,8 @@ class TaskCard: public QGroupBox {
 private:
     Task task;
     QGridLayout *layout{};
-    QGridLayout *gLayout{};
+    QVBoxLayout *gLayout{};
+    QHBoxLayout *hLayout{};
     ElaCheckBox *finishBox{};
     ElaText *title{};
     ElaText *stars{};
